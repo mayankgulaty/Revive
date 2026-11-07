@@ -64,6 +64,7 @@ It prints a QR code and links, and shows the same menu-bar icon. Ctrl-C quits.
    - **Show the clock when idle:** off, or after 1, 3, 10 or 30 minutes.
    - **Time format:** automatic (follows the phone), 12-hour or 24-hour.
    - **Theme.**
+   - **Phone tab** (modern iPhones): show or hide the camera + mic tab.
    - **World clocks:** search by city or country, so "India" finds New Delhi, Mumbai, Bengaluru…
 
    The idle delay, time format and theme are saved on each phone. The world clocks are saved on the Mac.

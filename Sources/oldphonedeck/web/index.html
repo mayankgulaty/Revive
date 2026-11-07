@@ -571,8 +571,14 @@
     if (name === 'clock' && was !== 'clock') clockEnter();
     if (name !== 'clock') { clearTimeout(clockTimer); store('view', name); }
   }
+  // The Phone tab (camera + mic to the Mac) only exists on modern iPhones, and can be hidden per phone.
+  function phoneTabOn() { return modern && store('phoneTab') !== 'off'; }
+  function applyPhoneTab() {
+    $('seg').style.display = phoneTabOn() ? 'block' : 'none';
+    if (!phoneTabOn() && view === 'phone') show('deck');
+  }
   if (modern) {
-    $('seg').style.display = 'block';
+    applyPhoneTab();
     var segs = $('seg').children;
     for (var i = 0; i < segs.length; i++) (function (s) { tap(s, function () { show(s.getAttribute('data-view')); }); })(segs[i]);
   }
@@ -842,6 +848,13 @@
       });
       section(box, 'Theme');
       themeChips(box);
+      if (modern) {
+        section(box, 'Deck');
+        settingRow(box, '◉', 'Phone tab (camera + mic to the Mac)', phoneTabOn() ? 'Shown' : 'Hidden', function () {
+          store('phoneTab', phoneTabOn() ? 'off' : 'on');
+          applyPhoneTab(); renderZones();
+        });
+      }
       if (zDraft.length) section(box, 'World clocks');
     }
     function row(z, idx) {
@@ -1374,7 +1387,7 @@
       if (s !== 200) { $('link').className = ''; setTimeout(connect, 2000); return; }
       sheet('login', false);
       loadKeys();
-      show(modern && store('view') === 'phone' ? 'phone' : 'deck');
+      show(phoneTabOn() && store('view') === 'phone' ? 'phone' : 'deck');
       if (/edit/.test(location.search)) setTimeout(openEditor, 300);
       // Link options for Home Screen bookmarks: ?clock opens the clock, ?settings its settings, ?theme=amber picks a theme.
       var th = /theme=(\w+)/.exec(location.search);
