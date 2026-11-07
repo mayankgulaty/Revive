@@ -20,6 +20,8 @@ struct Options {
                   --mic-device NAME audio device that receives the phone's mic (default BlackHole)
                 """)
                 exit(0)
+            // macOS passes -NSDocumentRevisionsDebugMode etc. to apps launched from Xcode; ignore those.
+            case _ where a.hasPrefix("-NS") || a.hasPrefix("-Apple"): _ = it.next()
             default: print("Unknown option \(a) (try --help)"); exit(2)
             }
         }
@@ -44,24 +46,6 @@ func loadToken() -> String {
     return t
 }
 
-func lanAddress() -> String {
-    var addr = "localhost"
-    var ifaddr: UnsafeMutablePointer<ifaddrs>?
-    guard getifaddrs(&ifaddr) == 0, let first = ifaddr else { return addr }
-    defer { freeifaddrs(ifaddr) }
-    for p in sequence(first: first, next: { $0.pointee.ifa_next }) {
-        let i = p.pointee
-        guard i.ifa_addr.pointee.sa_family == UInt8(AF_INET) else { continue }
-        let name = String(cString: i.ifa_name)
-        guard name.hasPrefix("en") else { continue }
-        var host = [CChar](repeating: 0, count: Int(NI_MAXHOST))
-        getnameinfo(i.ifa_addr, socklen_t(i.ifa_addr.pointee.sa_len), &host, socklen_t(host.count), nil, 0, NI_NUMERICHOST)
-        addr = String(cString: host)
-        if name == "en0" { break }
-    }
-    return addr
-}
-
 let token = loadToken()
 let app = NSApplication.shared
 app.setActivationPolicy(.accessory)
@@ -69,7 +53,7 @@ app.setActivationPolicy(.accessory)
 // MARK: Services
 
 let server: HTTPServer
-do { server = try HTTPServer(port: opts.port) } catch { print("Cannot listen on \(opts.port): \(error)"); exit(1) }
+do { server = try HTTPServer(port: opts.port) } catch { fatal("Cannot listen on \(opts.port): \(error)") }
 
 // Camera + mic from a modern iPhone (browser, over the secure WebSocket).
 var cameraViewers: [ObjectIdentifier: HTTPConnection] = [:]   // touched only on server.queue
@@ -82,10 +66,23 @@ let stats = Stats()
 stats.start()
 let music = Music()
 music.start()
+let activity = PhoneActivity()
 
 // MARK: Routes
 
-let webRoot = Bundle.module.url(forResource: "web", withExtension: nil)!
+/// The phone page: inside OldPhoneDeck.app it's in Contents/Resources/web; from `swift build`, in SwiftPM's resource bundle.
+let webRoot: URL = {
+    if let r = Bundle.main.resourceURL?.appendingPathComponent("web"),
+       FileManager.default.fileExists(atPath: r.appendingPathComponent("index.html").path) { return r }
+    return Bundle.module.url(forResource: "web", withExtension: nil)!
+}()
+
+/// A key from the request: type (app/link/folder) + path or url + name.
+func keyParams(_ p: [String: String]) -> [String: String] {
+    var k = ["type": p["type"] ?? "app"]
+    for f in ["path", "url", "name"] { if let v = p[f] { k[f] = v } }
+    return k
+}
 
 let routes: (HTTPRequest, HTTPConnection) -> Void = { req, conn in
     // Public: the page shell (so a home-screen bookmark loads) and the local CA as an iOS profile.
@@ -111,6 +108,7 @@ let routes: (HTTPRequest, HTTPConnection) -> Void = { req, conn in
         return conn.respond(200, "text/html; charset=utf-8", html)
     }
     guard req.query["k"] == token else { return conn.respond(403, text: "bad token") }
+    activity.touch()
     let p = req.params
 
     switch (req.method, req.path) {
@@ -119,6 +117,7 @@ let routes: (HTTPRequest, HTTPConnection) -> Void = { req, conn in
     case ("GET", "/stats"):
         var snap = stats.snapshot()
         snap["music"] = music.snapshot()
+        snap["time"] = WorldClocks.snapshot()
         conn.respondJSON(snap)
     case ("POST", "/speedtest"):
         stats.runSpeedTest()
@@ -132,24 +131,38 @@ let routes: (HTTPRequest, HTTPConnection) -> Void = { req, conn in
         conn.respond(200, "image/jpeg", art)
     case ("GET", "/launcher"):
         let selected: Any = Launcher.selected() ?? NSNull()
-        conn.respondJSON(["selected": selected, "all": Apps.list()])
+        conn.respondJSON(["selected": selected, "all": Apps.list(), "folders": Folders.suggestions()])
     case ("POST", "/launcher"):
-        // Body: paths=<path>\n<path>\n… in display order.
-        let paths = (p["paths"] ?? "").split(separator: "\n").map(String.init)
-        do { conn.respondJSON(["saved": try Launcher.save(paths)]) }
+        // Body: keys=<JSON array of keys> in display order.
+        guard let json = p["keys"]?.data(using: .utf8),
+              let keys = try? JSONSerialization.jsonObject(with: json) as? [[String: String]] else {
+            return conn.respond(400, text: "bad keys")
+        }
+        do { conn.respondJSON(["saved": try Launcher.save(keys)]) }
         catch { conn.respond(500, text: error.localizedDescription) }
     case ("GET", "/icon"):
-        let path = p["path"] ?? ""
-        guard Apps.isKnown(path) else { return conn.respond(404, text: "unknown app") }
-        DispatchQueue.main.async {
-            let png = Apps.icon(path) ?? Data()
-            server.queue.async { conn.respond(200, "image/png", png) }
+        let reply = { (png: Data?) in server.queue.async { conn.respond(200, "image/png", png ?? Data()) } }
+        switch p["type"] ?? "app" {
+        case "link":
+            guard let url = Links.web(p["url"] ?? "") else { return conn.respond(404, text: "bad link") }
+            Links.icon(for: url, done: reply)
+        case "folder":
+            guard let dir = Folders.resolve(p["path"] ?? "") else { return conn.respond(404, text: "no such folder") }
+            DispatchQueue.main.async { reply(Icons.file(dir)) }
+        default:
+            let path = p["path"] ?? ""
+            guard Apps.isKnown(path) else { return conn.respond(404, text: "unknown app") }
+            DispatchQueue.main.async { reply(Apps.icon(path)) }
         }
     case ("POST", "/launch"):
-        let path = p["path"] ?? ""
-        guard Apps.isKnown(path) else { return conn.respond(404, text: "unknown app") }
-        DispatchQueue.main.async { Apps.launch(path) }
+        guard Launcher.open(keyParams(p)) else { return conn.respond(404, text: "can't open that") }
         conn.respond(text: "ok")
+    case ("GET", "/clocks"):
+        conn.respondJSON(["selected": WorldClocks.selected(), "all": WorldClocks.all(), "max": WorldClocks.maxCount])
+    case ("POST", "/clocks"):
+        let ids = (p["ids"] ?? "").split(separator: "\n").map(String.init)
+        do { conn.respondJSON(["saved": try WorldClocks.save(ids)]) }
+        catch { conn.respond(500, text: error.localizedDescription) }
     case ("POST", "/claude"):
         let text = (p["text"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         DispatchQueue.main.async {
@@ -171,9 +184,9 @@ let routes: (HTTPRequest, HTTPConnection) -> Void = { req, conn in
 server.start(routes)
 
 // HTTPS + secure WebSocket for modern iPhones (Safari needs a secure page for camera, mic and speech).
-let lanIP = lanAddress()
+let links = PairingLinks.current(token: token, port: opts.port)
 var httpsServer: HTTPServer?
-if let identity = LocalTLS.identity(for: lanIP) {
+if let identity = LocalTLS.identity(for: links.ip, host: links.host) {
     do {
         let s = try HTTPServer(port: opts.port + 2, parameters: LocalTLS.parameters(identity), queue: server.queue)
         s.start(routes)
@@ -182,27 +195,37 @@ if let identity = LocalTLS.identity(for: lanIP) {
     } catch { print("⚠️  HTTPS failed to start: \(error)") }
 }
 
-// MARK: Permissions + start
+// MARK: Menu bar, permissions, start
+
+let statusMenu = StatusMenu(links: { PairingLinks.current(token: token, port: opts.port) }, activity: activity)
+StatusMenu.enableLoginOnFirstRun()
 
 if !AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary) {
     print("⚠️  Grant Accessibility permission (System Settings → Privacy & Security → Accessibility) so Take note can press Return in Claude.")
 }
 
+if isatty(STDOUT_FILENO) != 0, let qr = QR.terminal(links.deck) { print("\n" + qr, terminator: "") }
 print("""
 
-OldPhoneDeck is running. On the phone (same Wi-Fi), open Safari and go to:
+OldPhoneDeck is running (look for its icon in the menu bar). On the phone (same Wi-Fi), open Safari and go to:
 
-    http://\(lanIP):\(opts.port)/#k=\(token)
+    \(links.deck)
+\(links.host != nil ? "    or, if that name doesn't load: \(links.deckByIP)\n" : "")
+Modern iPhones can scan the code above. Then tap Share → Add to Home Screen. Hold any key to choose your keys.
 
-Then tap Share → Add to Home Screen. Hold any key to choose your apps.
-
-Modern iPhone (voice, camera, mic): once, open http://\(lanIP):\(opts.port)/oldphonedeck.mobileconfig,
+Modern iPhone (voice, camera, mic): once, open \(links.profile),
 install it, enable it in Settings → General → About → Certificate Trust Settings,
-then use https://\(lanIP):\(opts.port + 2)/#k=\(token)
-Camera for OBS (Media Source): http://localhost:\(opts.port)/camera.mjpg?k=\(token)
-Ctrl-C to quit.
+then use \(links.secureDeck)
+Camera for OBS (Media Source): \(links.obsCamera)
+Menu bar → Pair a Phone… shows these as QR codes. Ctrl-C to quit.
 
 """)
+
+// First run of the installed app: there's no terminal, so show the pairing codes.
+if StatusMenu.isApp && !UserDefaults.standard.bool(forKey: "pairingShown") {
+    UserDefaults.standard.set(true, forKey: "pairingShown")
+    DispatchQueue.main.async { statusMenu.showPairing() }
+}
 
 signal(SIGINT) { _ in exit(0) }
 app.run()

@@ -35,7 +35,7 @@ struct HTTPRequest {
 final class HTTPConnection {
     private let conn: NWConnection
     private var buffer = Data()
-    private let maxBody = 512 * 1024 * 1024
+    private let maxBody = 1024 * 1024   // the phone only sends small forms
     private var sending = false
     var onClose: (() -> Void)?
 
@@ -120,17 +120,21 @@ final class HTTPConnection {
 
 final class HTTPServer {
     private let listener: NWListener
+    private let port: UInt16
     let queue: DispatchQueue
 
     init(port: UInt16, parameters: NWParameters = .tcp, queue: DispatchQueue = DispatchQueue(label: "http")) throws {
         self.queue = queue
+        self.port = port
         listener = try NWListener(using: parameters, on: NWEndpoint.Port(rawValue: port)!)
     }
 
     func start(_ handler: @escaping (HTTPRequest, HTTPConnection) -> Void) {
         listener.newConnectionHandler = { [queue] nw in HTTPConnection(nw).start(queue: queue, handler: handler) }
-        listener.stateUpdateHandler = { state in
-            if case .failed(let e) = state { print("Server failed: \(e)"); exit(1) }
+        listener.stateUpdateHandler = { [port] state in
+            if case .failed(let e) = state {
+                fatal("Can't listen on port \(port): \(e). Is OldPhoneDeck already running (in the menu bar or a terminal)?")
+            }
         }
         listener.start(queue: queue)
     }

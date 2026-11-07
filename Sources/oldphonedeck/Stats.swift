@@ -9,6 +9,7 @@ final class Stats {
     private var speed: [String: Any] = [:]
     private var testing = false
     private var batteries: [[String: Any]] = []
+    private let macName = Net.computerName()   // read once: the phone polls every 2 s
 
     func start() {
         let net = DispatchSource.makeTimerSource(queue: queue)
@@ -35,7 +36,7 @@ final class Stats {
                         "history": history.map { $0[0] }],
                 "speed": s,
                 "batteries": batteries,
-                "mac": Host.current().localizedName ?? "Mac",
+                "mac": macName,
             ]
         }
     }

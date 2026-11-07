@@ -11,12 +11,40 @@ enum Input {
     }
 }
 
+/// Renders key icons as 114 px PNGs (57 pt @2x, the size an old iPhone's key shows them at).
+enum Icons {
+    static let size = 114
+
+    /// Call on the main thread (AppKit drawing).
+    static func png(size: Int = Icons.size, _ draw: (NSRect) -> Void) -> Data? {
+        guard let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: size, pixelsHigh: size,
+                                         bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                                         colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0) else { return nil }
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        draw(NSRect(x: 0, y: 0, width: size, height: size))
+        NSGraphicsContext.restoreGraphicsState()
+        return rep.representation(using: .png, properties: [:])
+    }
+
+    /// Finder's icon for an app or folder. Call on the main thread.
+    static func file(_ path: String) -> Data? {
+        // Resolve symlinks (e.g. /Applications/Safari.app) so the icon has no alias-arrow badge.
+        let img = NSWorkspace.shared.icon(forFile: URL(fileURLWithPath: path).resolvingSymlinksInPath().path)
+        return png { img.draw(in: $0) }
+    }
+}
+
 /// The app launcher: lists installed apps, renders their icons, and opens them.
 enum Apps {
     private static let lock = NSLock()
     private static var iconCache: [String: Data] = [:]
+    private static var listCache: (at: Date, apps: [[String: String]])?
 
+    /// Cached for 30 s: the editor asks for ~100 icons at once and each request checks the path against this list.
     static func list() -> [[String: String]] {
+        lock.lock(); defer { lock.unlock() }
+        if let c = listCache, Date().timeIntervalSince(c.at) < 30 { return c.apps }
         let fm = FileManager.default
         let dirs = ["/Applications", "/Applications/Utilities", "/System/Applications",
                     "/System/Applications/Utilities", NSHomeDirectory() + "/Applications"]
@@ -29,24 +57,18 @@ enum Apps {
                 out.append(["name": name, "path": dir + "/" + item])
             }
         }
-        return out.sorted { $0["name"]!.localizedCaseInsensitiveCompare($1["name"]!) == .orderedAscending }
+        out.sort { $0["name"]!.localizedCaseInsensitiveCompare($1["name"]!) == .orderedAscending }
+        listCache = (Date(), out)
+        return out
     }
 
     /// Only paths that appear in our own listing may be launched or rendered.
     static func isKnown(_ path: String) -> Bool { list().contains { $0["path"] == path } }
 
-    static func icon(_ path: String, size: Int = 114) -> Data? {
+    /// Call on the main thread.
+    static func icon(_ path: String) -> Data? {
         lock.lock(); if let d = iconCache[path] { lock.unlock(); return d }; lock.unlock()
-        // Resolve symlinks (e.g. /Applications/Safari.app) so the icon has no alias-arrow badge.
-        let img = NSWorkspace.shared.icon(forFile: URL(fileURLWithPath: path).resolvingSymlinksInPath().path)
-        guard let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: size, pixelsHigh: size,
-                                         bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
-                                         colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0) else { return nil }
-        NSGraphicsContext.saveGraphicsState()
-        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
-        img.draw(in: NSRect(x: 0, y: 0, width: size, height: size))
-        NSGraphicsContext.restoreGraphicsState()
-        guard let png = rep.representation(using: .png, properties: [:]) else { return nil }
+        guard let png = Icons.file(path) else { return nil }
         lock.lock(); iconCache[path] = png; lock.unlock()
         return png
     }
@@ -60,25 +82,92 @@ enum Apps {
     }
 }
 
-/// Which apps the phone launcher shows, in order. Stored on the Mac so Safari and the
-/// home-screen app (which have separate storage on iOS) see the same list.
+/// Folder keys open a folder in Finder.
+enum Folders {
+    /// An existing folder (not an app or other package, which Finder would launch), with ~ expanded.
+    static func resolve(_ path: String) -> String? {
+        let expanded = (path.trimmingCharacters(in: .whitespacesAndNewlines) as NSString).expandingTildeInPath
+        guard expanded.hasPrefix("/") else { return nil }
+        let url = URL(fileURLWithPath: expanded).standardizedFileURL.resolvingSymlinksInPath()
+        guard let v = try? url.resourceValues(forKeys: [.isDirectoryKey, .isPackageKey]),
+              v.isDirectory == true, v.isPackage != true else { return nil }
+        return url.path
+    }
+
+    /// Common folders offered in the key editor. Only folders whose own metadata can be read without
+    /// a privacy prompt (looking inside Documents or Desktop would ask for permission).
+    static func suggestions() -> [[String: String]] {
+        let home = NSHomeDirectory()
+        let candidates = [("Home", home), ("Desktop", home + "/Desktop"), ("Documents", home + "/Documents"),
+                          ("Downloads", home + "/Downloads"), ("Developer", home + "/Developer"),
+                          ("Projects", home + "/Projects"), ("Applications", "/Applications")]
+        return candidates.compactMap { name, path in
+            resolve(path).map { ["name": name, "path": $0] }
+        }
+    }
+
+    static func open(_ path: String) {
+        NSWorkspace.shared.open(URL(fileURLWithPath: path, isDirectory: true))
+    }
+}
+
+/// The deck's keys, in order. Each is ["type": "app", "path"], ["type": "link", "url", "name"]
+/// or ["type": "folder", "path", "name"]. Stored on the Mac so Safari and the Home Screen
+/// web app (which have separate storage on iOS) see the same keys.
 enum Launcher {
+    static let maxKeys = 7
     static let file = URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".oldphonedeck/launcher.json")
 
-    /// nil = never configured (phone shows everything and suggests editing).
-    static func selected() -> [String]? {
+    /// nil = never configured (the phone shows empty keys and suggests editing).
+    static func selected() -> [[String: String]]? {
         guard let data = try? Data(contentsOf: file),
-              let paths = try? JSONSerialization.jsonObject(with: data) as? [String] else { return nil }
-        return paths
+              let raw = try? JSONSerialization.jsonObject(with: data) as? [Any] else { return nil }
+        return raw.compactMap { item in
+            if let path = item as? String { return ["type": "app", "path": path] }   // older launcher.json: app paths only
+            return item as? [String: String]
+        }
     }
 
     @discardableResult
-    static func save(_ paths: [String]) throws -> Int {
-        let known = Set(Apps.list().compactMap { $0["path"] })
-        let clean = paths.filter { known.contains($0) }
+    static func save(_ keys: [[String: String]]) throws -> Int {
+        let clean = Array(keys.compactMap(validate).prefix(maxKeys))
         try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
         try JSONSerialization.data(withJSONObject: clean, options: .prettyPrinted).write(to: file)
         return clean.count
+    }
+
+    /// A cleaned-up key, or nil if it can't be opened (unknown app, non-web URL, missing folder).
+    static func validate(_ key: [String: String]) -> [String: String]? {
+        func label(_ fallback: String) -> String {
+            let n = (key["name"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            return String((n.isEmpty ? fallback : n).prefix(40))
+        }
+        switch key["type"] ?? "app" {
+        case "app":
+            guard let path = key["path"], Apps.isKnown(path) else { return nil }
+            return ["type": "app", "path": path]
+        case "link":
+            guard let url = Links.web(key["url"] ?? "") else { return nil }
+            return ["type": "link", "url": url.absoluteString, "name": label(Links.displayHost(url))]
+        case "folder":
+            guard let dir = Folders.resolve(key["path"] ?? "") else { return nil }
+            return ["type": "folder", "path": dir, "name": label((dir as NSString).lastPathComponent)]
+        default:
+            return nil
+        }
+    }
+
+    /// Opens a key on the Mac. Returns false if the key isn't valid.
+    static func open(_ key: [String: String]) -> Bool {
+        guard let k = validate(key) else { return false }
+        DispatchQueue.main.async {
+            switch k["type"] {
+            case "link": if let u = URL(string: k["url"]!) { NSWorkspace.shared.open(u) }
+            case "folder": Folders.open(k["path"]!)
+            default: Apps.launch(k["path"]!)
+            }
+        }
+        return true
     }
 }
 
@@ -96,16 +185,27 @@ enum Claude {
         // URLComponents leaves "+" and "&"-adjacent chars ambiguous for some parsers; encode strictly.
         comps.percentEncodedQuery = comps.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
         guard let url = comps.url else { return }
+        let wasRunning = !NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).isEmpty
         NSWorkspace.shared.open(url)
         guard autoSend else { return }
-        // Press Return once the new chat has loaded — only if Claude is actually in front.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            guard NSWorkspace.shared.frontmostApplication?.bundleIdentifier == bundleID else {
-                print("Claude was not frontmost; left the message unsent")
-                return
+        // Wait for Claude to come to the front, then give the new chat time to load before pressing Return.
+        // A cold launch takes several seconds; a fixed delay used to leave those notes unsent.
+        pressReturnWhenReady(until: Date().addingTimeInterval(15), settle: wasRunning ? 1.8 : 4.5)
+    }
+
+    private static func pressReturnWhenReady(until deadline: Date, settle: TimeInterval) {
+        if NSWorkspace.shared.frontmostApplication?.bundleIdentifier == bundleID {
+            DispatchQueue.main.asyncAfter(deadline: .now() + settle) {
+                // Only if Claude is still in front: never type Return into another app.
+                guard NSWorkspace.shared.frontmostApplication?.bundleIdentifier == bundleID else {
+                    return print("Claude lost focus; left the note unsent")
+                }
+                Input.key("return")
             }
-            Input.key("return")
+            return
         }
+        guard Date() < deadline else { return print("Claude did not come to the front; left the note unsent") }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { pressReturnWhenReady(until: deadline, settle: settle) }
     }
 
     static func focus() {

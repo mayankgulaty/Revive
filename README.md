@@ -1,21 +1,24 @@
 # OldPhoneDeck
 
-**Turn an old iPhone into a Stream Deck–style control panel for your Mac.**
+**Turn an old iPhone into a Stream Deck–style control panel and desk clock for your Mac.**
 No jailbreak, no App Store, nothing to install on the phone: it runs in Safari, even on an iPhone 4S stuck on iOS 9.
 
 ![An iPhone 4S on a desk stand running OldPhoneDeck](docs/desk.jpg)
 
-| The deck | Take note | Pick your apps |
-|---|---|---|
-| ![Deck](docs/deck.jpg) | ![Take note](docs/take-note.jpg) | ![Pick apps](docs/pick-apps.jpg) |
+| The deck | Idle clock | Take note | Pick your keys |
+|---|---|---|---|
+| ![Deck](docs/deck.jpg) | ![Flip clock](docs/clock.jpg) | ![Take note](docs/take-note.jpg) | ![Pick keys](docs/pick-apps.jpg) |
 
 ## Features
 
-- **8 big keys:** 7 Mac apps of your choice, plus **Take note**. Tap a key and the app opens on your Mac. Hold any key to pick apps.
+- **8 big keys:** 7 of your choice plus **Take note**. A key can open a **Mac app**, a **website** (App Store Connect, Gmail, a dashboard…) in your default browser, or a **folder** in Finder. Website keys show the site's own icon. Hold any key to edit.
+- **Flip clock when idle:** after a few minutes without a touch, the deck turns into a full-screen split-flap clock with animated digits, the date and up to **3 world clocks**. Tap to go back, hold to pick cities and the idle delay. You can also tap the time in the top-left corner.
 - **Take note → new Claude chat:** dictate a note, and it opens and sends a fresh conversation in the [Claude](https://claude.ai/download) desktop app.
-- **Now playing:** artwork, track, progress, and previous / play-pause / next for **Spotify** or **Apple Music**.
+- **Now playing:** artwork, track, progress and previous / play-pause / next for **Spotify** or **Apple Music**. The card only appears while music is playing (and for a minute after you pause), and the keys move into its space otherwise.
 - **Internet widget:** download, upload and ping (macOS's built-in `networkQuality`), plus a live traffic graph. Tap it to re-test.
 - **Batteries widget:** MacBook, Magic Keyboard / Mouse / Trackpad and AirPods (with case), each as an icon + percentage.
+- **Menu-bar app:** runs in the background, opens at login, and shows **QR codes** to pair a phone.
+- **A link that keeps working:** the phone uses your Mac's Bonjour name (`your-mac.local`), so a Home Screen bookmark survives your router handing out a new IP address.
 - **Fits any iPhone:** a compact 480×320 layout on old phones; full-width landscape and a portrait layout on modern ones.
 - **Modern iPhones also get:** voice input for Take note, and a **Phone** tab that streams the camera (into OBS) and the mic (into BlackHole) to your Mac.
 
@@ -25,22 +28,43 @@ No jailbreak, no App Store, nothing to install on the phone: it runs in Safari, 
 - An iPhone or iPad with Safari: anything from iOS 8/9 (iPhone 4S, 5, iPad 2…) to the latest
 - Both on the same Wi-Fi network
 
-## Quick start
+## Install (recommended)
 
 ```bash
-git clone https://github.com/<you>/OldPhoneDeck.git
+git clone https://github.com/mayankgulaty/OldPhoneDeck.git
 cd OldPhoneDeck
+scripts/install.sh
+```
+
+This builds **OldPhoneDeck.app** into `~/Applications` and starts it. Then:
+
+- Look for its icon (a 2×2 grid) in the **menu bar**. There's no Dock icon.
+- The first launch opens **Pair a Phone**, with QR codes and the link to type on an old iPhone. You can reopen it from the menu any time.
+- It turns on **Open at Login**, so the deck comes back after a restart. You can turn that off in the menu.
+
+To update, `git pull` and run `scripts/install.sh` again. To remove it, run `scripts/install.sh --uninstall`. Your settings stay in `~/.oldphonedeck`.
+
+The script signs the app with your Apple Development or Developer ID certificate if you have one (or `SIGN_IDENTITY="…"`). That keeps macOS permissions across updates. Without one it signs ad hoc, and macOS may ask for permissions again after each update.
+
+## Or run it from the terminal
+
+```bash
 swift build -c release
 .build/release/oldphonedeck
 ```
 
-It prints a link like `http://192.168.x.x:8045/#k=<token>`. On the phone:
+It prints a QR code and links, and shows the same menu-bar icon. Ctrl-C quits.
 
-1. Open that link in **Safari**.
+## Set up the phone
+
+1. Open the link in **Safari**: scan the QR code (iOS 11+), or type the address shown under it, like `http://your-mac.local:8045/#k=<token>`.
 2. Tap **Share → Add to Home Screen** and launch it from there to run it full screen.
-3. **Hold any key** to choose your 7 apps.
+3. **Hold any key** to choose your keys. *Add a website…* takes an address such as `appstoreconnect.apple.com`. *Add a folder by path…* takes a path such as `~/Documents/GitHub`.
+4. **Hold the clock** (or wait for it) to pick world clocks and how long the deck waits before showing it: off, 1, 3, 10 or 30 minutes.
 
-Tips for a dedicated desk display: set **Auto-Lock → Never**, and use **Guided Access** (Settings → Accessibility) to lock the phone to the deck.
+If `your-mac.local` doesn't load (some mesh or office networks block Bonjour), use the IP-address link shown underneath it instead.
+
+Tips for a dedicated desk display: set **Auto-Lock → Never**, and use **Guided Access** (Settings → Accessibility) to lock the phone to the deck. Add `?clock` to the link (`http://your-mac.local:8045/?clock#k=<token>`) for a bookmark that opens straight into the clock.
 
 ### macOS permissions (asked on first use)
 
@@ -49,27 +73,27 @@ Tips for a dedicated desk display: set **Auto-Lock → Never**, and use **Guided
 | **Accessibility** | Take note presses Return in Claude to send your note |
 | **Automation → Spotify / Music** | Reading what's playing and controlling playback |
 
-They're granted to the app you run `oldphonedeck` from (e.g. Terminal).
+They're granted to **OldPhoneDeck** when installed, or to your terminal app when you run it from a terminal.
 
 ### Modern iPhone: voice, camera and mic (optional)
 
-Safari only allows the microphone, camera and speech recognition on **HTTPS** pages, so OldPhoneDeck creates a private certificate authority on your Mac (stored in `~/.oldphonedeck/tls`).
+Safari only allows the microphone, camera and speech recognition on **HTTPS** pages, so OldPhoneDeck creates a private certificate authority on your Mac (stored in `~/.oldphonedeck/tls`). Menu bar → **Pair a Phone…** has QR codes for each step:
 
-1. On the iPhone, open `http://<mac-ip>:8045/oldphonedeck.mobileconfig` and tap **Allow**.
+1. On the iPhone, open `http://your-mac.local:8045/oldphonedeck.mobileconfig` and tap **Allow**.
 2. **Settings → Profile Downloaded → Install.**
 3. **Settings → General → About → Certificate Trust Settings** → turn on **OldPhoneDeck CA**. *(Easy to miss: without it Safari keeps saying "This Connection Is Not Private".)*
-4. Open `https://<mac-ip>:8047/#k=<token>` and add it to the Home Screen.
+4. Open `https://your-mac.local:8047/#k=<token>` and add it to the Home Screen.
 
-**Camera → video calls:** in [OBS](https://obsproject.com), add a *Media Source* with `http://localhost:8045/camera.mjpg?k=<token>`, then click **Start Virtual Camera**.
+**Camera → video calls:** in [OBS](https://obsproject.com), add a *Media Source* with `http://localhost:8045/camera.mjpg?k=<token>` (menu bar → **Copy OBS Camera URL**), then click **Start Virtual Camera**.
 **Mic → video calls:** install [BlackHole 2ch](https://existential.audio/blackhole/) and restart OldPhoneDeck; pick "BlackHole 2ch" as the microphone in your call app.
 *(For plain FaceTime or Zoom calls, macOS's built-in Continuity Camera is simpler.)*
 
 ## How it works
 
 ```
-iPhone (Safari)                     Mac: oldphonedeck (Swift, no dependencies)
+iPhone (Safari)                     Mac: OldPhoneDeck (Swift, no dependencies, menu-bar app)
 ┌──────────────────────┐  Wi-Fi    ┌───────────────────────────────────────────────────┐
-│ deck page            │ ────────▶ │ :8045 HTTP   page, apps, stats, music, Take note  │
+│ deck page            │ ────────▶ │ :8045 HTTP   page, keys, stats, music, clocks     │
 │ (ES5 JavaScript so   │           │ :8047 HTTPS  same, for modern iPhones             │
 │  iOS 8/9 can run it) │ ────────▶ │ :8048 WSS    camera frames + mic audio            │
 └──────────────────────┘           └───────────────────────────────────────────────────┘
@@ -78,13 +102,17 @@ iPhone (Safari)                     Mac: oldphonedeck (Swift, no dependencies)
 | Feature | Mac side |
 |---|---|
 | App keys | `NSWorkspace` lists `/Applications`, renders icons, opens apps |
-| Take note | Opens `claude://claude.ai/new?q=…` (the same link the Claude app's own macOS Service uses), then presses Return |
+| Website keys | Opens `http(s)` links only. Icons: the site's `apple-touch-icon` or favicon, fetched once and cached in `~/.oldphonedeck/icons`, or a coloured letter tile |
+| Folder keys | Opens existing folders in Finder (never apps or other packages) |
+| Flip clock | The phone draws it with CSS 3D flips. The Mac sends its own time and each world clock's UTC offset, because an old phone's clock drifts and iOS 9 has no time-zone support (`Intl`) |
+| Take note | Opens `claude://claude.ai/new?q=…` (the same link the Claude app's own macOS Service uses), waits for Claude to come to the front, then presses Return |
 | Now playing | AppleScript to Spotify / Music, with a timeout so a pending permission prompt can't freeze it |
 | Internet | `/usr/bin/networkQuality -c` + `en*` interface byte counters |
 | Batteries | IOKit power sources, `ioreg -r -k BatteryPercent`, `system_profiler SPBluetoothDataType` |
-| HTTPS | Local CA and server certificate generated with the built-in `openssl`, served as an iOS profile |
+| HTTPS | Local CA and a server certificate for `your-mac.local` and the current IP, generated with the built-in `openssl` and served as an iOS profile |
+| Menu bar | `NSStatusItem`, QR codes from Core Image, Open at Login via `SMAppService` |
 
-The whole phone UI is one file, [`Sources/oldphonedeck/web/index.html`](Sources/oldphonedeck/web/index.html). It's deliberately written in ES5 (no arrow functions, `let`, `fetch`…) so iOS 8/9 Safari can run it.
+The whole phone UI is one file, [`Sources/oldphonedeck/web/index.html`](Sources/oldphonedeck/web/index.html). It's deliberately written in ES5 (no arrow functions, `let`, `fetch`…) so iOS 8/9 Safari can run it. CI checks this on every push.
 
 ## Options
 
@@ -93,27 +121,39 @@ oldphonedeck --port 8045           # HTTP port (HTTPS = port+2, WebSocket = port
 oldphonedeck --mic-device NAME     # audio output that receives the phone's mic (default: BlackHole)
 ```
 
-Settings live in `~/.oldphonedeck/`: `token` (the access code), `launcher.json` (your keys) and `tls/` (certificates).
+Settings live in `~/.oldphonedeck/` (menu bar → **Show Settings Folder**):
+
+| File | What |
+|---|---|
+| `token` | The access code in the link |
+| `launcher.json` | Your keys |
+| `clocks.json` | Your world clocks |
+| `icons/` | Cached website icons. Delete one to fetch it again |
+| `tls/` | Certificates for HTTPS |
 
 ## Security
 
 - It listens on your **local network only**, and every request needs the random token from `~/.oldphonedeck/token`.
-- Anyone with the link on your Wi-Fi can open apps on your Mac, so **treat the URL like a password** and **never port-forward it to the internet**.
-- Delete `~/.oldphonedeck/token` to issue a new one.
+- Anyone with the link on your Wi-Fi can open apps, websites and folders on your Mac, so **treat the URL like a password** and **never port-forward it to the internet**.
+- Website keys only accept `http`/`https` links, and folder keys only open real folders, never apps.
+- Delete `~/.oldphonedeck/token` and restart OldPhoneDeck to issue a new one.
 
 ## Troubleshooting
 
 | Problem | Fix |
 |---|---|
-| Phone shows a blank page | Is the Mac on the same Wi-Fi? Check the printed IP. Old iOS can't run modern JavaScript, so if you edited `index.html`, keep it ES5. |
-| "This Connection Is Not Private" | Finish step 3 of the HTTPS setup (Certificate Trust Settings). |
-| Now playing stays empty | Approve macOS's "allow to control Spotify / Music" prompt, then wait a few seconds. |
-| Take note opens Claude but doesn't send | Grant Accessibility to the app running `oldphonedeck`. |
+| Phone shows a blank page | Is the Mac on the same Wi-Fi? Try the IP-address link instead of the `.local` one. Old iOS can't run modern JavaScript, so if you edited `index.html`, keep it ES5. |
+| `your-mac.local` doesn't load | Your network may block Bonjour: use the IP-address link from **Pair a Phone…** |
+| "This Connection Is Not Private" | Finish step 3 of the HTTPS setup (Certificate Trust Settings). If you set it up before the `.local` link existed, reopen the HTTPS link: the certificate was renewed automatically. |
+| "Can't listen on port 8045" | OldPhoneDeck is already running, either in the menu bar or in a terminal. Quit one of them. |
+| Now playing doesn't appear | It only shows while music plays. Approve macOS's "allow to control Spotify / Music" prompt, then wait a few seconds. |
+| A website key shows a letter instead of an icon | The site has no icon the Mac could fetch (or it was offline). Restart OldPhoneDeck to try again. |
+| Take note opens Claude but doesn't send | Grant Accessibility to OldPhoneDeck (or to your terminal app if you run it from one). |
 | Mic says "No audio device matching BlackHole" | Install BlackHole 2ch, or ignore it if you don't use the mic. |
 
 ## Built with Claude Code
 
-This project was built in an evening with [Claude Code](https://claude.com/claude-code). Want your own variant? Point Claude Code at this repo and ask for changes like *"add a weather widget"*, *"make the keys run Shortcuts"* or *"add a Pomodoro timer"*. Ask it to keep `index.html` ES5 if you want old iPhones to keep working.
+This project was built with [Claude Code](https://claude.com/claude-code). Want your own variant? Point Claude Code at this repo and ask for changes like *"add a weather widget"*, *"make the keys run Shortcuts"* or *"add a Pomodoro timer"*. Ask it to keep `index.html` ES5 if you want old iPhones to keep working.
 
 ## License
 

@@ -92,8 +92,12 @@
   .chip b.low { color: #ff453a; }
   .chip b.chg { color: #30d158; }
   .empty-note { font-size: 10px; color: #636366; }
+  /* Keys and widgets glide into place when Now playing appears or goes away. */
+  #keys, .card { -webkit-transition: top .4s ease, left .4s ease; transition: top .4s ease, left .4s ease; }
   /* ---- now playing ---- */
-  #music { position: absolute; height: 52px; padding: 0; }
+  #music { position: absolute; height: 52px; padding: 0;
+    -webkit-transition: opacity .35s ease, top .4s ease; transition: opacity .35s ease, top .4s ease; }
+  #music.gone { opacity: 0; pointer-events: none; }
   #mArt { position: absolute; left: 8px; top: 8px; width: 36px; height: 36px; border-radius: 8px;
     background: linear-gradient(135deg, #3a3a3c, #232326); box-shadow: 0 2px 6px rgba(0,0,0,.4); }
   #mArt.none { visibility: hidden; }
@@ -132,6 +136,75 @@
   #pSetup p { margin: 0 0 8px; font-size: 11.5px; line-height: 16px; color: #d1d1d6; }
   #pSetup a { color: #64d2ff; }
 
+  /* ---- idle clock: split-flap digits ---- */
+  html.night, html.night body { background: #000; }
+  #clockView { background: #000; }
+  #clockInner { position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+    -webkit-transition: -webkit-transform 3s ease; transition: transform 3s ease; }
+  /* Sizes are in em: JS sets #fc's font-size so the clock fills the screen. Layout (em): HH 0–1.54, colon, MM 1.86–3.4, ss at 3.5. */
+  #fc { position: absolute; height: 1.1em; width: 4.09em; font: 600 100px "SF Pro Rounded", ui-rounded, -apple-system, "Helvetica Neue", sans-serif;
+    color: #ececf0; -webkit-font-feature-settings: "tnum"; font-feature-settings: "tnum"; }
+  .fpair { position: absolute; top: 0; width: 1.54em; height: 1.1em; }
+  #fH { left: 0; } #fM { left: 1.86em; }
+  #fS { font-size: .38em; left: 9.21em; top: 1.8em; }   /* 3.5em and bottom-aligned, in its own smaller em */
+  .fc { position: absolute; top: 0; width: .74em; height: 1.1em; border-radius: .08em;
+    -webkit-perspective: 3em; perspective: 3em; box-shadow: 0 .03em .08em rgba(0,0,0,.7), 0 .01em 0 rgba(255,255,255,.04); }
+  .fc + .fc { left: .8em; }
+  .fc .h { position: absolute; left: 0; right: 0; height: 50%; overflow: hidden;
+    -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+  .fc .t { top: 0; border-radius: .08em .08em 0 0; background: linear-gradient(180deg, #303035 0%, #26262b 100%);
+    -webkit-transform-origin: 50% 100%; transform-origin: 50% 100%; }
+  .fc .b { bottom: 0; border-radius: 0 0 .08em .08em; background: linear-gradient(180deg, #1f1f23 0%, #19191c 100%);
+    -webkit-transform-origin: 50% 0; transform-origin: 50% 0; }
+  .fc .h span { position: absolute; left: 0; right: 0; height: 1.1em; line-height: 1.12em; text-align: center; }
+  .fc .t span { top: 0; }
+  .fc .b span { bottom: 0; }
+  .fc:after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: .012em; min-height: 1px; margin-top: -.006em;
+    background: #000; z-index: 3; }
+  /* The flip: the old top half falls forward, then the new bottom half swings down into place. */
+  .fc .flap { z-index: 2; }
+  .fc .flap:after { content: ""; position: absolute; left: 0; right: 0; top: 0; bottom: 0; background: #000; opacity: 0; }
+  .fc .ft { -webkit-animation: flipTop .26s ease-in both; animation: flipTop .26s ease-in both; }
+  .fc .ft:after { -webkit-animation: shadeIn .26s ease-in both; animation: shadeIn .26s ease-in both; }
+  .fc .fb { -webkit-animation: flipBottom .3s .26s cubic-bezier(.3,1.5,.6,1) both; animation: flipBottom .3s .26s cubic-bezier(.3,1.5,.6,1) both; }
+  .fc .fb:after { -webkit-animation: shadeOut .3s .26s ease-out both; animation: shadeOut .3s .26s ease-out both; }
+  @-webkit-keyframes flipTop { from { -webkit-transform: rotateX(0deg); } to { -webkit-transform: rotateX(-90deg); } }
+  @keyframes flipTop { from { transform: rotateX(0deg); } to { transform: rotateX(-90deg); } }
+  @-webkit-keyframes flipBottom { from { -webkit-transform: rotateX(90deg); } to { -webkit-transform: rotateX(0deg); } }
+  @keyframes flipBottom { from { transform: rotateX(90deg); } to { transform: rotateX(0deg); } }
+  @-webkit-keyframes shadeIn { from { opacity: 0; } to { opacity: .55; } }
+  @keyframes shadeIn { from { opacity: 0; } to { opacity: .55; } }
+  @-webkit-keyframes shadeOut { from { opacity: .45; } to { opacity: 0; } }
+  @keyframes shadeOut { from { opacity: .45; } to { opacity: 0; } }
+  #fColon { position: absolute; left: 1.54em; top: 0; width: .32em; height: 1.1em; }
+  #fColon i { position: absolute; left: .115em; width: .09em; height: .09em; border-radius: .045em; background: #8e8e93;
+    -webkit-animation: breathe 2s ease-in-out infinite; animation: breathe 2s ease-in-out infinite; }
+  #fColon i:first-child { top: .36em; }
+  #fColon i + i { top: .65em; }
+  @-webkit-keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+  @keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+  #fAmpm { position: absolute; left: .55em; top: .45em; z-index: 4; font-size: .11em; font-weight: 700; letter-spacing: .08em; color: #8e8e93; }
+  #cDate { position: absolute; left: 0; right: 0; text-align: center; font-size: 12px; font-weight: 600; letter-spacing: 1.6px;
+    text-transform: uppercase; color: #8e8e93; }
+  #cMusic { position: absolute; left: 40px; right: 40px; text-align: center; font-size: 11px; color: #636366;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; -webkit-transition: opacity .4s; transition: opacity .4s; }
+  #world { position: absolute; left: 0; right: 0; height: 56px; }
+  .wc { position: absolute; top: 0; height: 56px; border-radius: 14px; box-sizing: border-box; padding: 8px 10px;
+    background: rgba(255,255,255,.055); box-shadow: inset 0 0 0 .5px rgba(255,255,255,.1);
+    -webkit-animation: rise .5s ease both; animation: rise .5s ease both; }
+  .wc .wcity { font-size: 9px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: #8e8e93;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wc .wcity i { display: inline-block; width: 6px; height: 6px; border-radius: 3px; margin-right: 5px; vertical-align: 1px; }
+  .wc .wtime { font-size: 18px; font-weight: 600; letter-spacing: -.4px; margin-top: 2px; -webkit-font-feature-settings: "tnum"; font-feature-settings: "tnum"; }
+  .wc .wtime small { font-size: 9px; font-weight: 700; color: #8e8e93; margin-left: 2px; letter-spacing: 0; }
+  .wc .wday { position: absolute; right: 10px; bottom: 9px; font-size: 9.5px; color: #636366; }
+  @-webkit-keyframes rise { from { opacity: 0; -webkit-transform: translateY(10px); } to { opacity: 1; -webkit-transform: none; } }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  #cHint { position: absolute; left: 0; right: 0; bottom: 8px; text-align: center; font-size: 9.5px; color: #48484a;
+    -webkit-animation: hintFade 6s ease both; animation: hintFade 6s ease both; }
+  @-webkit-keyframes hintFade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes hintFade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+
   /* ---- sheets ---- */
   .scrim { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,.55); z-index: 10; display: none; }
   .scrim.on { display: block; }
@@ -151,15 +224,28 @@
   #askMic { float: left; width: 28px; height: 28px; border-radius: 14px; background: #3a3a3c; margin-right: 8px; position: relative; display: none; }
   #askMic.live { background: #ff453a; }
   #askMic svg { position: absolute; left: 7px; top: 5px; }
-  #edit .sheet { left: 8px; right: 8px; width: auto; margin-left: 0; top: 8px; bottom: 8px; padding: 10px 10px 0; }
-  #filter { position: absolute; left: 10px; right: 150px; top: 10px; height: 28px; box-sizing: border-box; border: 0; border-radius: 9px;
+  /* Full-height list pickers: keys and world clocks */
+  .picker .sheet { left: 8px; right: 8px; width: auto; margin-left: 0; top: 8px; bottom: 8px; padding: 10px 10px 0; }
+  .pfilter { position: absolute; left: 10px; right: 150px; top: 10px; height: 28px; box-sizing: border-box; border: 0; border-radius: 9px;
     background: #2c2c2e; color: #fff; padding: 0 10px; font-size: 13px; outline: none; -webkit-user-select: text; }
-  #edit .btns { position: absolute; right: 10px; top: 10px; margin: 0; }
-  #editCount { position: absolute; left: 12px; top: 44px; font-size: 10px; color: #8e8e93; }
-  #editList { position: absolute; left: 6px; right: 6px; top: 60px; bottom: 0; overflow-y: scroll; -webkit-overflow-scrolling: touch; }
+  .picker .btns { position: absolute; right: 10px; top: 10px; margin: 0; }
+  .pcount { position: absolute; left: 12px; right: 12px; top: 44px; font-size: 10px; color: #8e8e93; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .plist { position: absolute; left: 6px; right: 6px; top: 60px; bottom: 0; overflow-y: scroll; -webkit-overflow-scrolling: touch; }
+  .esec { padding: 12px 4px 4px; font-size: 9.5px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: #8e8e93; }
   .erow { height: 34px; position: relative; border-bottom: .5px solid rgba(255,255,255,.08); }
   .erow img { position: absolute; left: 30px; top: 4px; width: 26px; height: 26px; }
   .erow .nm { position: absolute; left: 64px; right: 40px; top: 9px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .erow.noimg .nm { left: 32px; right: 90px; }
+  .erow .side { position: absolute; right: 8px; top: 10px; font-size: 11px; color: #8e8e93; -webkit-font-feature-settings: "tnum"; font-feature-settings: "tnum"; }
+  .erow.add .ck { box-shadow: none; color: #64d2ff; font-size: 18px; font-weight: 400; }
+  .erow.add .nm { color: #64d2ff; }
+  .erow.setting .nm { color: #f5f5f7; }
+  .erow.setting .side { color: #64d2ff; font-weight: 600; }
+  /* Add a website / folder */
+  #addForm .sheet { top: 8px; }
+  .field { display: block; width: 100%; height: 32px; box-sizing: border-box; border: 0; border-radius: 9px; margin-bottom: 7px;
+    background: #2c2c2e; color: #fff; padding: 0 10px; font-size: 14px; outline: none; -webkit-user-select: text; }
+  #addHelp { font-size: 10.5px; color: #8e8e93; line-height: 14px; }
   .erow .ck { position: absolute; left: 4px; top: 8px; width: 18px; height: 18px; border-radius: 9px; box-shadow: inset 0 0 0 1.5px #48484a;
     text-align: center; line-height: 18px; font-size: 11px; font-weight: 700; color: #fff; }
   .erow.on .ck { background: #0a84ff; box-shadow: none; }
@@ -181,7 +267,7 @@
   <div id="deck" class="view on">
     <div id="keys"></div>
     <div id="hint">Hold any key to choose apps</div>
-    <div id="music" class="card">
+    <div id="music" class="card gone">
       <div id="mNote">♪</div><img id="mArt" class="none" alt="">
       <div id="mInfo"><div id="mTitle">Nothing playing</div><div id="mArtist">Spotify or Apple Music</div></div>
       <div id="mProg"><i id="mProgFill"></i></div>
@@ -217,6 +303,22 @@
     </div>
   </div>
 
+  <!-- Idle clock: split-flap time, date, world clocks. Tap to go back; hold to pick cities. -->
+  <div id="clockView" class="view">
+    <div id="clockInner">
+      <div id="fc">
+        <div class="fpair" id="fH"><div class="fc"></div><div class="fc"></div><span id="fAmpm"></span></div>
+        <div id="fColon"><i></i><i></i></div>
+        <div class="fpair" id="fM"><div class="fc"></div><div class="fc"></div></div>
+        <div class="fpair" id="fS"><div class="fc"></div><div class="fc"></div></div>
+      </div>
+      <div id="cDate"></div>
+      <div id="cMusic"></div>
+      <div id="world"></div>
+    </div>
+    <div id="cHint">Tap to go back · hold to choose world clocks</div>
+  </div>
+
   <div id="status">
     <div id="clock"><span id="time">–</span><span id="ampm"></span><span id="date"></span></div>
     <div id="seg"><div data-view="deck" class="on">Deck</div><div data-view="phone">Phone</div></div>
@@ -236,13 +338,34 @@
     </div>
   </div>
 
-  <!-- Choose the 7 apps -->
-  <div id="edit" class="scrim">
+  <!-- Choose the 7 keys: apps, websites, folders -->
+  <div id="edit" class="scrim picker">
     <div class="sheet">
-      <input id="filter" placeholder="Search apps" autocorrect="off" autocapitalize="none">
+      <input id="filter" class="pfilter" placeholder="Search" autocorrect="off" autocapitalize="none">
       <div class="btns"><div class="btn primary" id="editSave">Save</div><div class="btn" id="editCancel">Cancel</div></div>
-      <div id="editCount"></div>
-      <div id="editList"></div>
+      <div id="editCount" class="pcount"></div>
+      <div id="editList" class="plist"></div>
+    </div>
+  </div>
+
+  <!-- Add a website or a folder key -->
+  <div id="addForm" class="scrim">
+    <div class="sheet">
+      <h2 id="addTitle">Add a website</h2>
+      <input id="addValue" class="field" autocorrect="off" autocapitalize="none" spellcheck="false">
+      <input id="addName" class="field" placeholder="Label (optional)" autocorrect="off">
+      <div id="addHelp"></div>
+      <div class="btns"><div class="btn primary" id="addOk">Add</div><div class="btn" id="addCancel">Cancel</div></div>
+    </div>
+  </div>
+
+  <!-- Choose world clocks -->
+  <div id="zones" class="scrim picker">
+    <div class="sheet">
+      <input id="zFilter" class="pfilter" placeholder="Search cities" autocorrect="off" autocapitalize="none">
+      <div class="btns"><div class="btn primary" id="zSave">Save</div><div class="btn" id="zCancel">Cancel</div></div>
+      <div id="zCount" class="pcount"></div>
+      <div id="zList" class="plist"></div>
     </div>
   </div>
 
@@ -325,14 +448,17 @@
     var net = $('net'), bat = $('bat'), cardW, netH = 104, batH;
     net.className = bat.className = 'card';
     $('hint').style.display = 'none';
+    // Now playing only takes space while something plays; the keys move into its place otherwise.
+    $('music').className = 'card' + (musicOn ? '' : ' gone');
     if (portrait) {
       // Everything in one centered stack: keys, now playing, then the two widgets side by side.
-      var stackH = 208 + 8 + 58 + 12 + netH, top = Math.max(90, Math.round((H - stackH) / 2) + 10);
+      var musicH = musicOn ? 4 + 58 : 0;
+      var stackH = 208 + musicH + 12 + netH, top = Math.max(90, Math.round((H - stackH) / 2) + 10);
       $('seg').style.top = '50px';
       px($('keys'), { left: (W - 316) / 2, top: top });
       px($('music'), { left: 16, top: top + 208 + 4, width: W - 32 });
       cardW = (W - 42) / 2; batH = netH;
-      var cardTop = top + 208 + 4 + 58 + 12;
+      var cardTop = top + 208 + musicH + 12;
       px(net, { left: 16, top: cardTop, width: cardW, height: netH });
       px(bat, { left: 16 + cardW + 10, top: cardTop, width: cardW });
       var pvH = Math.round((W - 32) * 3 / 4);
@@ -344,7 +470,8 @@
       var right = W - 16, colLeft = right - cardW;
       var keysArea = colLeft - 16 - 16;                       // left column: keys on top, now playing below
       var keysLeft = 16 + Math.max(0, (keysArea - 316) / 2);
-      px($('keys'), { left: keysLeft, top: 52 });
+      // Two rows of keys are ~192pt tall: centre them in the column when there's no Now playing below.
+      px($('keys'), { left: keysLeft, top: musicOn ? 52 : 52 + Math.round((304 - 52 - 192) / 2) });
       px($('music'), { left: 16, top: 252, width: Math.max(316, keysArea) });
       batH = 304 - (52 + netH + 10);
       px(net, { left: colLeft, top: 52, width: cardW, height: netH });
@@ -358,6 +485,7 @@
     spark.width = sw * 2; spark.height = sh * 2;
     px(spark, { width: sw, height: sh });
     drawSpark(lastHistory); renderBatteries(lastBatteries);
+    layoutClock();
   }
   window.addEventListener('resize', fit);
   window.addEventListener('orientationchange', function () { setTimeout(fit, 300); });
@@ -365,37 +493,288 @@
   // ---------- views (Deck, plus Phone on modern iPhones) ----------
   var view = 'deck';
   function show(name) {
+    var was = view;
     view = name;
     $('deck').className = 'view' + (name === 'deck' ? ' on' : '');
     $('phone').className = 'view' + (name === 'phone' ? ' on' : '');
+    $('clockView').className = 'view' + (name === 'clock' ? ' on' : '');
+    $('status').style.display = name === 'clock' ? 'none' : '';
+    document.documentElement.className = name === 'clock' ? 'night' : '';
     var segs = $('seg').children;
     for (var i = 0; i < segs.length; i++) segs[i].className = segs[i].getAttribute('data-view') === name ? 'on' : '';
     if (name === 'phone') phoneEnter(); else pollStats();
-    store('view', name);
+    if (name === 'clock' && was !== 'clock') clockEnter();
+    if (name !== 'clock') { clearTimeout(clockTimer); store('view', name); }
   }
   if (modern) {
     $('seg').style.display = 'block';
     var segs = $('seg').children;
     for (var i = 0; i < segs.length; i++) (function (s) { tap(s, function () { show(s.getAttribute('data-view')); }); })(segs[i]);
   }
-  function sheet(id, on) { $(id).className = 'scrim' + (on ? ' on' : ''); }
-  window.deckHome = function () { sheet('claude', false); sheet('edit', false); show('deck'); };
+  function sheet(id, on) {   // keeps other classes (e.g. "picker")
+    var el = $(id);
+    el.className = el.className.replace(/\s*\bon\b/g, '') + (on ? ' on' : '');
+  }
+  window.deckHome = function () {
+    sheet('claude', false); sheet('edit', false); sheet('addForm', false); sheet('zones', false); show('deck');
+  };
 
-  // ---------- clock ----------
+  // ---------- time ----------
+  // Times come from the Mac: an old phone's clock drifts, and iOS 9 has no Intl for time zones.
+  // macNow() is the Mac's epoch time; wall(offset) is a Date whose getUTC* fields read as local time in that zone.
   var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  function tick() {
-    var d = new Date();
-    // Keep the device's 12/24h preference: split "1:31:05 AM" into "1:31" + "AM".
-    var m = /(\d{1,2}[:.]\d{2})(?:[:.]\d{2})?\s*([^\d\s]*)/.exec(d.toLocaleTimeString()) || [];
-    $('time').textContent = m[1] || (d.getHours() + ':' + ('0' + d.getMinutes()).slice(-2));
-    $('ampm').textContent = m[2] || '';
-    $('date').textContent = DAYS[d.getDay()] + ' · ' + d.getDate() + ' ' + MONTHS[d.getMonth()];
+  var skew = 0, synced = false, macTz = -new Date().getTimezoneOffset() * 60, zones = [];
+  var hour12 = !/15/.test(new Date(2020, 0, 1, 15, 0, 0).toLocaleTimeString());   // follow the phone's 12/24-hour setting
+  function macNow() { return Date.now() + skew; }
+  function wall(offset) { return new Date(macNow() + offset * 1000); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function hm(d) {   // { h: '9', m: '05', ap: 'AM' } from a wall() date
+    var h = d.getUTCHours(), ap = '';
+    if (hour12) { ap = h < 12 ? 'AM' : 'PM'; h = h % 12 || 12; }
+    return { h: hour12 ? String(h) : pad(h), m: pad(d.getUTCMinutes()), ap: ap };
   }
-  setInterval(tick, 10000);
+  function syncTime(t) {
+    if (!t) return;
+    var s = t.now - Date.now();
+    if (!synced || Math.abs(s - skew) > 1500) skew = s;   // ignore network jitter so seconds don't jump
+    synced = true; macTz = t.offset;
+    var ids = (t.clocks || []).map(function (z) { return z.id; }).join(',');
+    var changed = ids !== zones.map(function (z) { return z.id; }).join(',');
+    zones = t.clocks || [];
+    if (changed) { layoutClock(); renderWorld(true); }
+  }
+  function tick() {
+    var d = wall(macTz), t = hm(d);
+    $('time').textContent = t.h + ':' + t.m;
+    $('ampm').textContent = t.ap;
+    $('date').textContent = DAYS[d.getUTCDay()] + ' · ' + d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()];
+  }
+  setInterval(tick, 5000);
+
+  // ---------- idle clock: split-flap digits ----------
+  var clockTimer = null, cards = [];
+  (function () {
+    var all = $('fc').querySelectorAll('.fc');
+    for (var i = 0; i < all.length; i++) {
+      all[i].innerHTML = '<div class="h t"><span></span></div><div class="h b"><span></span></div>';
+      cards.push(all[i]);
+    }
+  })();
+  function half(cls, text) {
+    var h = document.createElement('div');
+    h.className = 'h ' + cls;
+    h.innerHTML = '<span></span>';
+    h.firstChild.textContent = text;
+    return h;
+  }
+  // Static halves show new-top / old-bottom while two flaps animate over them: the old top falls, the new bottom lands.
+  function flipTo(card, v, animate) {
+    if (card.v === v) return;
+    var old = card.v === undefined ? '' : card.v;
+    card.v = v;
+    clearTimeout(card.t);
+    var flaps = card.querySelectorAll('.flap');
+    for (var i = 0; i < flaps.length; i++) card.removeChild(flaps[i]);
+    var top = card.children[0].firstChild, bottom = card.children[1].firstChild;
+    top.textContent = v;
+    if (!animate) { bottom.textContent = v; return; }
+    bottom.textContent = old;
+    var ft = half('t flap ft', old), fb = half('b flap fb', v);
+    card.appendChild(ft); card.appendChild(fb);
+    card.t = setTimeout(function () {
+      bottom.textContent = v;
+      if (ft.parentNode) card.removeChild(ft);
+      if (fb.parentNode) card.removeChild(fb);
+    }, 600);
+  }
+  function digits() {
+    var d = wall(macTz), t = hm(d);
+    var h = t.h.length < 2 ? ' ' + t.h : t.h;   // 12-hour clocks leave the first card blank before 10
+    return { v: [h.charAt(0), h.charAt(1), t.m.charAt(0), t.m.charAt(1), pad(d.getUTCSeconds()).charAt(0), pad(d.getUTCSeconds()).charAt(1)],
+             ap: t.ap, d: d };
+  }
+  function renderClock(cascade) {
+    var x = digits();
+    for (var i = 0; i < cards.length; i++) {
+      // Entering: the cards flip in one after another, each reading the time when its turn comes.
+      if (cascade) (function (c, n) { setTimeout(function () { flipTo(c, digits().v[n], true); }, 120 + n * 90); })(cards[i], i);
+      else flipTo(cards[i], x.v[i], true);
+    }
+    $('fAmpm').textContent = x.ap;
+    $('cDate').textContent = DAYS[x.d.getUTCDay()] + ', ' + x.d.getUTCDate() + ' ' + MONTHS[x.d.getUTCMonth()];
+    if (x.d.getUTCSeconds() === 0) { renderWorld(false); drift(); }
+  }
+  function clockLoop() {
+    renderClock(false);
+    clockTimer = setTimeout(clockLoop, 1000 - macNow() % 1000 + 15);   // land just after each second ticks over
+  }
+  function clockEnter() {
+    for (var i = 0; i < cards.length; i++) { cards[i].v = undefined; flipTo(cards[i], '', false); }
+    var hint = $('cHint'); hint.style.display = 'none'; void hint.offsetWidth; hint.style.display = '';   // replay the fade
+    layoutClock(); renderWorld(true); renderClockMusic();
+    renderClock(true);
+    clearTimeout(clockTimer);
+    // Start ticking once the cascade (~0.7 s) is done, on a second boundary.
+    clockTimer = setTimeout(clockLoop, 700 + 1000 - (macNow() + 700) % 1000 + 15);
+  }
+  // Nudge the whole clock a few points each minute so a modern phone's OLED doesn't burn in.
+  function drift() {
+    var x = Math.round(Math.random() * 12 - 6), y = Math.round(Math.random() * 8 - 4);
+    $('clockInner').style.webkitTransform = $('clockInner').style.transform = 'translate(' + x + 'px,' + y + 'px)';
+  }
+  var clockBottom = 0;
+  function layoutClock() {
+    var em = Math.floor(Math.min((W - 48) / 4.09, portrait ? 92 : 112));
+    // Landscape: world clocks side by side. Portrait: stacked, since three across would be too narrow.
+    var fh = 1.1 * em, musicH = musicOn ? 20 : 0;
+    var worldH = !zones.length ? 0 : portrait ? zones.length * 64 - 8 : 56;
+    var total = fh + 34 + musicH + (worldH ? 22 + worldH : 0);
+    var top = Math.max(18, Math.round((H - total) / 2) - 6);
+    $('fc').style.fontSize = em + 'px';
+    px($('fc'), { left: Math.round((W - 4.09 * em) / 2), top: top });
+    px($('cDate'), { top: top + fh + 14 });
+    px($('cMusic'), { top: top + fh + 36 });
+    clockBottom = top + fh + 34 + musicH;
+    px($('world'), { top: clockBottom + 22 });
+    renderWorld(true);
+  }
+  function renderClockMusic() {
+    var m = lastMusic || {};
+    $('cMusic').textContent = musicOn && m.title ? '♪  ' + m.title + (m.artist ? ' — ' + m.artist : '') : '';
+  }
+  // World clocks: city, time, and how far ahead or behind the Mac they are.
+  function renderWorld(rebuild) {
+    var box = $('world');
+    if (rebuild) {
+      box.innerHTML = '';
+      var n = zones.length, gap = 10, w = Math.min(170, Math.floor((W - 32 - (n - 1) * gap) / Math.max(1, n)));
+      var left = Math.round((W - (n * w + (n - 1) * gap)) / 2);
+      if (portrait) { w = Math.min(300, W - 48); left = Math.round((W - w) / 2); }
+      zones.forEach(function (z, i) {
+        var c = document.createElement('div');
+        c.className = 'wc';
+        c.innerHTML = '<div class="wcity"><i></i><span></span></div><div class="wtime"></div><div class="wday"></div>';
+        c.style.webkitAnimationDelay = c.style.animationDelay = (0.25 + i * 0.12) + 's';
+        if (portrait) px(c, { left: left, top: i * 64, width: w });
+        else px(c, { left: left + i * (w + gap), width: w });
+        c.firstChild.lastChild.textContent = z.city;
+        box.appendChild(c);
+      });
+    }
+    var here = wall(macTz);
+    zones.forEach(function (z, i) {
+      var c = box.children[i];
+      if (!c) return;
+      var d = wall(z.offset), t = hm(d), hr = d.getUTCHours();
+      c.children[1].innerHTML = '';
+      c.children[1].appendChild(document.createTextNode(t.h + ':' + t.m));
+      if (t.ap) { var s = document.createElement('small'); s.textContent = t.ap; c.children[1].appendChild(s); }
+      // Day/night dot: amber 7am–7pm, indigo otherwise.
+      c.firstChild.firstChild.style.background = hr >= 7 && hr < 19 ? '#ffd60a' : '#5e5ce6';
+      var dayDiff = Math.round((Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) -
+                                Date.UTC(here.getUTCFullYear(), here.getUTCMonth(), here.getUTCDate())) / 86400000);
+      var diff = (z.offset - macTz) / 3600, abs = Math.abs(diff);
+      var off = diff === 0 ? 'same time' : (diff > 0 ? '+' : '−') + Math.floor(abs) + (abs % 1 ? ':' + pad(Math.round(abs % 1 * 60)) : '') + 'h';
+      c.children[2].textContent = (dayDiff > 0 ? 'Tomorrow · ' : dayDiff < 0 ? 'Yesterday · ' : '') + off;
+    });
+  }
+  tap($('clockView'), function () { show('deck'); }, openZones);
+  tap($('clock'), function () { show('clock'); });
+
+  // Go to the clock after a few idle minutes on the deck. The delay is per phone (Off, 1, 3, 10, 30 min).
+  var IDLE_CHOICES = [0, 1, 3, 10, 30], lastTouch = Date.now();
+  function idleMinutes() { var v = store('idle'); return v === null || v === '' || isNaN(+v) ? 3 : +v; }
+  function markActive() { lastTouch = Date.now(); }
+  document.addEventListener('touchstart', markActive, true);
+  document.addEventListener('mousedown', markActive, true);
+  function sheetOpen() {
+    var s = document.querySelectorAll('.scrim.on');
+    return s.length > 0;
+  }
+  setInterval(function () {
+    var lim = idleMinutes();
+    if (lim && view === 'deck' && !sheetOpen() && Date.now() - lastTouch > lim * 60000) show('clock');
+  }, 5000);
+
+  // ---------- world clock picker (hold the clock) ----------
+  var zoneData = null, zDraft = [];
+  function openZones() {
+    $('zFilter').value = '';
+    sheet('zones', true);
+    $('zList').innerHTML = '<div class="esec">Loading…</div>';
+    xhr('GET', url('/clocks'), null, function (s, text) {
+      if (s !== 200) { sheet('zones', false); return toast('Could not reach the Mac'); }
+      zoneData = JSON.parse(text);
+      zDraft = zoneData.selected.slice();
+      renderZones();
+    });
+  }
+  function zoneById(id) {
+    for (var i = 0; i < zoneData.all.length; i++) if (zoneData.all[i].id === id) return zoneData.all[i];
+    return null;
+  }
+  function offsetLabel(sec) {
+    var a = Math.abs(sec), h = Math.floor(a / 3600), m = Math.round(a % 3600 / 60);
+    return 'UTC' + (sec < 0 ? '−' : '+') + h + (m ? ':' + pad(m) : '');
+  }
+  function renderZones() {
+    if (!zoneData) return;
+    var box = $('zList'), q = $('zFilter').value.toLowerCase(), max = zoneData.max || 3, shown = 0;
+    box.innerHTML = '';
+    $('zCount').textContent = zDraft.length + ' of ' + max + ' clocks · tap to add or remove';
+    if (!q) {
+      var idle = idleMinutes(), r = document.createElement('div');
+      r.className = 'erow noimg setting';
+      r.innerHTML = '<div class="ck">⏱</div><div class="nm">Show this clock when idle</div><div class="side"></div>';
+      r.lastChild.textContent = idle ? 'after ' + idle + ' min' : 'Off';
+      r.addEventListener('click', function () {
+        var next = IDLE_CHOICES[(IDLE_CHOICES.indexOf(idleMinutes()) + 1) % IDLE_CHOICES.length];
+        store('idle', String(next)); renderZones();
+      });
+      box.appendChild(r);
+    }
+    function row(z, idx) {
+      var on = idx >= 0, full = !on && zDraft.length >= max;
+      var r = document.createElement('div');
+      r.className = 'erow noimg' + (on ? ' on' : '') + (full ? ' full' : '');
+      r.innerHTML = '<div class="ck">' + (on ? idx + 1 : '') + '</div><div class="nm"></div><div class="side"></div>';
+      r.children[1].textContent = z.city + (z.region ? ' · ' + z.region.replace(/_/g, ' ') : '');
+      r.children[2].textContent = offsetLabel(z.offset);
+      r.addEventListener('click', function () {
+        if (on) zDraft.splice(idx, 1);
+        else if (full) return toast('Remove a city first (' + max + ' at most)');
+        else zDraft.push(z.id);
+        renderZones();
+      });
+      box.appendChild(r);
+    }
+    zDraft.forEach(function (id, i) { var z = zoneById(id); if (z) row(z, i); });
+    var head = document.createElement('div');
+    head.className = 'esec'; head.textContent = q ? 'Matches' : 'All cities';
+    box.appendChild(head);
+    // Hundreds of rows are slow on an iPhone 4S: show the first 80 and let search find the rest.
+    for (var i = 0; i < zoneData.all.length && shown < 80; i++) {
+      var z = zoneData.all[i];
+      if (zDraft.indexOf(z.id) >= 0) continue;
+      if (q && (z.city + ' ' + z.region + ' ' + z.id).toLowerCase().indexOf(q) < 0) continue;
+      row(z, -1); shown++;
+    }
+    if (shown === 80) { var more = document.createElement('div'); more.className = 'esec'; more.textContent = 'Search to find more cities'; box.appendChild(more); }
+  }
+  $('zFilter').addEventListener('input', renderZones);
+  tap($('zCancel'), function () { $('zFilter').blur(); sheet('zones', false); });
+  tap($('zSave'), function () {
+    xhr('POST', url('/clocks'), 'ids=' + encodeURIComponent(zDraft.join('\n')), function (s) {
+      if (s !== 200) return toast('Save failed');
+      $('zFilter').blur(); sheet('zones', false); toast('World clocks saved');
+      pollStats();
+    });
+  });
 
   // ---------- keys ----------
-  var launcher = { selected: null, all: [] };
+  // A key is { type: 'app', path } | { type: 'link', url, name } | { type: 'folder', path, name }.
+  var launcher = { selected: null, all: [], folders: [] };
   // A notepad with a pencil: quick capture that becomes a Claude conversation.
   var CLAUDE_SVG = '<svg width="36" height="36" viewBox="0 0 36 36">' +
     '<rect x="7" y="5" width="19" height="26" rx="4.5" fill="#fff"/>' +
@@ -404,6 +783,19 @@
   function byPath(p) {
     for (var i = 0; i < launcher.all.length; i++) if (launcher.all[i].path === p) return launcher.all[i];
     return null;
+  }
+  var enc = encodeURIComponent;
+  function keyId(k) { return k.type + ':' + (k.type === 'link' ? k.url : k.path); }
+  // Name + icon URL for a key, or null if it points at an app that's no longer installed.
+  function keyInfo(k) {
+    if (k.type === 'link') return { name: k.name, icon: url('/icon', 'type=link&url=' + enc(k.url)) };
+    if (k.type === 'folder') return { name: k.name, icon: url('/icon', 'type=folder&path=' + enc(k.path)) };
+    var a = byPath(k.path);
+    return a ? { name: a.name, icon: url('/icon', 'path=' + enc(a.path)) } : null;
+  }
+  function openKey(k, name) {
+    var body = 'type=' + k.type + '&path=' + enc(k.path || '') + '&url=' + enc(k.url || '');
+    xhr('POST', url('/launch'), body, function (s) { toast(s === 200 ? 'Opening ' + name : 'Could not open ' + name); });
   }
   function loadKeys() {
     xhr('GET', url('/launcher'), null, function (s, text) {
@@ -421,16 +813,19 @@
     return k;
   }
   function renderKeys() {
-    var box = $('keys'), apps = [];
-    (launcher.selected || []).forEach(function (p) { var a = byPath(p); if (a && apps.length < APP_SLOTS) apps.push(a); });
+    var box = $('keys'), keys = [];
+    (launcher.selected || []).forEach(function (k) {
+      var info = keyInfo(k);
+      if (info && keys.length < APP_SLOTS) keys.push({ k: k, info: info });
+    });
     box.innerHTML = '';
     for (var i = 0; i < APP_SLOTS; i++) {
-      (function (a) {
-        if (!a) { box.appendChild(key('empty', 'Add', '', openEditor, openEditor)); return; }
-        box.appendChild(key('', a.name, '<img src="' + url('/icon', 'path=' + encodeURIComponent(a.path)) + '">', function () {
-          xhr('POST', url('/launch'), 'path=' + encodeURIComponent(a.path), function (s) { toast(s === 200 ? 'Opening ' + a.name : 'Launch failed'); });
-        }, openEditor));
-      })(apps[i]);
+      (function (x) {
+        if (!x) { box.appendChild(key('empty', 'Add', '', openEditor, openEditor)); return; }
+        var el = key('', x.info.name, '<img>', function () { openKey(x.k, x.info.name); }, openEditor);
+        el.firstChild.firstChild.src = x.info.icon;
+        box.appendChild(el);
+      })(keys[i]);
     }
     box.appendChild(key('claude', 'Take note', CLAUDE_SVG, openClaude, function () {
       xhr('POST', url('/claude'), 'text=', function () { toast('Claude is open on the Mac'); });
@@ -438,47 +833,118 @@
   }
 
   // ---------- editor (hold any key) ----------
+  // Sections: the keys on the deck (in order), "add a website / folder", suggested folders, then every app.
   var draft = [];
   function openEditor() {
-    draft = (launcher.selected || []).slice(0, APP_SLOTS);
+    draft = (launcher.selected || []).filter(keyInfo).slice(0, APP_SLOTS);
     $('filter').value = '';
     sheet('edit', true);
     renderEditor();
   }
+  function draftIndex(k) {
+    var id = keyId(k);
+    for (var i = 0; i < draft.length; i++) if (keyId(draft[i]) === id) return i;
+    return -1;
+  }
+  function section(box, title) {
+    var h = document.createElement('div');
+    h.className = 'esec'; h.textContent = title;
+    box.appendChild(h);
+  }
+  function editRow(box, k, info) {
+    var idx = draftIndex(k), on = idx >= 0, full = !on && draft.length >= APP_SLOTS;
+    var row = document.createElement('div');
+    row.className = 'erow' + (on ? ' on' : '') + (full ? ' full' : '');
+    row.innerHTML = '<div class="ck">' + (on ? idx + 1 : '') + '</div><img><div class="nm"></div>' + (idx > 0 ? '<div class="up">▲</div>' : '');
+    row.children[1].src = info.icon;
+    row.children[2].textContent = info.name;
+    if (idx > 0) row.lastChild.addEventListener('click', function (e) {
+      e.stopPropagation(); draft.splice(idx, 1); draft.splice(idx - 1, 0, k); renderEditor();
+    });
+    row.addEventListener('click', function () {
+      if (on) draft.splice(idx, 1);
+      else if (full) return toast('All ' + APP_SLOTS + ' keys are used: remove one first');
+      else draft.push(k);
+      renderEditor();
+    });
+    box.appendChild(row);
+  }
+  function addRow(box, label, onTap) {
+    var row = document.createElement('div');
+    row.className = 'erow noimg add';
+    row.innerHTML = '<div class="ck">+</div><div class="nm"></div>';
+    row.lastChild.textContent = label;
+    row.addEventListener('click', function () {
+      if (draft.length >= APP_SLOTS) return toast('All ' + APP_SLOTS + ' keys are used: remove one first');
+      onTap();
+    });
+    box.appendChild(row);
+  }
   function renderEditor() {
     var box = $('editList'), q = $('filter').value.toLowerCase();
+    function match(name) { return !q || name.toLowerCase().indexOf(q) >= 0; }
     box.innerHTML = '';
-    $('editCount').textContent = draft.length + ' of ' + APP_SLOTS + ' keys · ▲ moves an app earlier';
-    var chosen = draft.map(byPath).filter(function (a) { return a; });
-    var rest = launcher.all.filter(function (a) { return draft.indexOf(a.path) < 0; });
-    chosen.concat(rest).forEach(function (a) {
-      if (q && a.name.toLowerCase().indexOf(q) < 0) return;
-      var idx = draft.indexOf(a.path), on = idx >= 0, full = !on && draft.length >= APP_SLOTS;
-      var row = document.createElement('div');
-      row.className = 'erow' + (on ? ' on' : '') + (full ? ' full' : '');
-      row.innerHTML = '<div class="ck">' + (on ? idx + 1 : '') + '</div><img><div class="nm"></div>' + (idx > 0 ? '<div class="up">▲</div>' : '');
-      row.children[1].src = url('/icon', 'path=' + encodeURIComponent(a.path));
-      row.children[2].textContent = a.name;
-      if (idx > 0) row.lastChild.addEventListener('click', function (e) {
-        e.stopPropagation(); draft.splice(idx, 1); draft.splice(idx - 1, 0, a.path); renderEditor();
-      });
-      row.addEventListener('click', function () {
-        if (on) draft.splice(idx, 1);
-        else if (full) return toast('All 7 keys are used: remove one first');
-        else draft.push(a.path);
-        renderEditor();
-      });
-      box.appendChild(row);
-    });
+    $('editCount').textContent = draft.length + ' of ' + APP_SLOTS + ' keys · tap to add or remove · ▲ moves a key earlier';
+    if (draft.length) section(box, 'On the deck');
+    draft.forEach(function (k) { var info = keyInfo(k); if (info && match(info.name)) editRow(box, k, info); });
+    if (!q) {
+      section(box, 'Websites & folders');
+      addRow(box, 'Add a website…', function () { openAdd('link'); });
+      addRow(box, 'Add a folder by path…', function () { openAdd('folder'); });
+    }
+    var folders = launcher.folders.filter(function (f) { return match(f.name) && draftIndex({ type: 'folder', path: f.path }) < 0; });
+    if (folders.length) section(box, 'Folders');
+    folders.forEach(function (f) { var k = { type: 'folder', path: f.path, name: f.name }; editRow(box, k, keyInfo(k)); });
+    var apps = launcher.all.filter(function (a) { return match(a.name) && draftIndex({ type: 'app', path: a.path }) < 0; });
+    if (apps.length) section(box, 'Apps');
+    apps.forEach(function (a) { var k = { type: 'app', path: a.path }; editRow(box, k, keyInfo(k)); });
   }
   $('filter').addEventListener('input', renderEditor);
-  tap($('editCancel'), function () { sheet('edit', false); });
+  tap($('editCancel'), function () { $('filter').blur(); sheet('edit', false); });
   tap($('editSave'), function () {
-    xhr('POST', url('/launcher'), 'paths=' + encodeURIComponent(draft.join('\n')), function (s) {
+    var sent = draft.length;
+    xhr('POST', url('/launcher'), 'keys=' + enc(JSON.stringify(draft)), function (s, text) {
       if (s !== 200) return toast('Save failed');
-      launcher.selected = draft.slice();
-      renderKeys(); sheet('edit', false); toast('Keys saved');
+      $('filter').blur(); sheet('edit', false);
+      var saved = JSON.parse(text).saved;
+      toast(saved < sent ? (sent - saved) + ' key(s) could not be saved: check the link or folder' : 'Keys saved');
+      loadKeys();   // the Mac cleans up names and paths; show what it stored
     });
+  });
+
+  // Add a website (e.g. App Store Connect) or a folder by its path on the Mac.
+  var addType = 'link';
+  function openAdd(type) {
+    addType = type;
+    var link = type === 'link';
+    $('addTitle').textContent = link ? 'Add a website' : 'Add a folder';
+    $('addValue').value = ''; $('addName').value = '';
+    $('addValue').placeholder = link ? 'appstoreconnect.apple.com' : '~/Documents/GitHub';
+    $('addValue').type = link ? 'url' : 'text';
+    $('addHelp').textContent = link
+      ? 'Opens in your Mac\'s default browser. The key shows the site\'s icon.'
+      : 'A folder on the Mac. It opens in Finder. ~ means your home folder.';
+    sheet('addForm', true);
+    $('addValue').focus();
+  }
+  function closeAdd() { $('addValue').blur(); $('addName').blur(); sheet('addForm', false); }
+  tap($('addCancel'), closeAdd);
+  tap($('addOk'), function () {
+    var v = $('addValue').value.replace(/^\s+|\s+$/g, ''), name = $('addName').value.replace(/^\s+|\s+$/g, '');
+    if (!v) return toast(addType === 'link' ? 'Type a web address' : 'Type a folder path');
+    var k;
+    if (addType === 'link') {
+      if (!/^https?:\/\//i.test(v)) v = 'https://' + v;
+      var host = (/^https?:\/\/([^\/?#:]+)/i.exec(v) || [])[1] || '';
+      if (host.indexOf('.') < 0 && host !== 'localhost') return toast('That doesn\'t look like a web address');
+      k = { type: 'link', url: v, name: name || host.replace(/^www\./, '') };
+    } else {
+      var last = v.replace(/\/+$/, '').split('/').pop() || v;
+      k = { type: 'folder', path: v, name: name || (last === '~' ? 'Home' : last) };
+    }
+    if (draftIndex(k) >= 0) return toast('That key is already on the deck');
+    draft.push(k);
+    closeAdd(); renderEditor();
   });
 
   // ---------- Ask Claude ----------
@@ -608,11 +1074,12 @@
     });
   }
   function pollStats() {
-    if (view !== 'deck') return;
+    if (view === 'phone') return;
     xhr('GET', url('/stats'), null, function (s, text) {
       $('link').className = s === 200 ? 'ok' : '';
       if (s !== 200) return;
       var d = JSON.parse(text);
+      syncTime(d.time); tick();
       $('macName').textContent = d.mac.replace(/^\S+['’]s?\s+/, '');
       var sp = d.speed || {};
       $('down').textContent = sp.down !== undefined ? fmt(sp.down) : '–';
@@ -634,9 +1101,16 @@
   var PLAY = '<svg width="16" height="16" viewBox="0 0 16 16"><path d="M5 3v10l8-5z" fill="#111"/></svg>';
   var PAUSE = '<svg width="16" height="16" viewBox="0 0 16 16"><path d="M4.5 3h2.6v10H4.5zM8.9 3h2.6v10H8.9z" fill="#111"/></svg>';
   var track = { playing: false, position: 0, duration: 0, at: 0 }, artKey = '';
+  // The card shows only while music plays, and stays a minute after pausing so you can resume.
+  var musicOn = false, lastPlayed = 0, lastMusic = null, PAUSE_GRACE = 60000;
   function setPlayIcon(playing) { $('mPlay').innerHTML = playing ? PAUSE : PLAY; }
   function renderMusic(m) {
     m = m || {};
+    lastMusic = m;
+    if (m.playing) lastPlayed = Date.now();
+    var on = !!m.title && (!!m.playing || Date.now() - lastPlayed < PAUSE_GRACE);
+    if (on !== musicOn) { musicOn = on; layout(); }
+    renderClockMusic();
     $('mTitle').textContent = m.title || 'Nothing playing';
     $('mArtist').textContent = m.title ? (m.artist || '') + (m.app ? ' · ' + m.app : '') : 'Spotify or Apple Music';
     track = { playing: !!m.playing, position: m.position || 0, duration: m.duration || 0, at: Date.now() };
@@ -658,7 +1132,11 @@
   function media(cmd) {
     xhr('POST', url('/media'), 'cmd=' + cmd, function () { setTimeout(pollStats, 450); });
   }
-  tap($('mPlay'), function () { setPlayIcon(!track.playing); track.playing = !track.playing; media('playpause'); });
+  tap($('mPlay'), function () {
+    setPlayIcon(!track.playing); track.playing = !track.playing;
+    lastPlayed = Date.now();   // pausing from the deck starts the grace minute now
+    media('playpause');
+  });
   tap($('mNext'), function () { media('next'); });
   tap($('mPrev'), function () { media('previous'); });
   tap($('mInfo'), function () { media('open'); toast('Opening the player on the Mac'); });
@@ -784,6 +1262,7 @@
       loadKeys();
       show(modern && store('view') === 'phone' ? 'phone' : 'deck');
       if (/edit/.test(location.search)) setTimeout(openEditor, 300);
+      if (/clock/.test(location.search)) show('clock');   // e.g. a Home Screen bookmark that opens as a clock
     });
   }
   tap($('go'), function () {

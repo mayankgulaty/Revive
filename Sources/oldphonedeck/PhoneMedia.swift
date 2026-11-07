@@ -2,12 +2,9 @@ import AVFoundation
 import CoreAudio
 import Network
 
-/// Receives camera + mic from the PhoneCam iOS app on port+1.
-/// Wire format per message: 1 byte type | 4 bytes big-endian length | payload.
-///   'H' token  ·  'V' JPEG frame  ·  'A' 16 kHz mono s16le PCM
+/// Receives camera + mic from a modern iPhone's browser over a secure WebSocket (port+3).
+/// Each binary message: 1 type byte + payload.  'H' token  ·  'V' JPEG frame  ·  'A' 16 kHz mono s16le PCM
 final class PhoneMediaServer {
-    // Receives camera + mic from a modern iPhone's browser over a secure WebSocket.
-    // Each binary message: 1 type byte + payload.  'H' token  ·  'V' JPEG frame  ·  'A' 16 kHz mono s16le PCM
     private let queue = DispatchQueue(label: "phone-media")
     private let token: String
     private let audio: AudioOut?
