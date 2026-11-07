@@ -183,7 +183,6 @@
   #fColon i + i { top: .65em; }
   @-webkit-keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
   @keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
-  #fAmpm { position: absolute; left: .55em; top: .45em; z-index: 4; font-size: .11em; font-weight: 700; letter-spacing: .08em; color: #8e8e93; }
   #cDate { position: absolute; left: 0; right: 0; text-align: center; font-size: 12px; font-weight: 600; letter-spacing: 1.6px;
     text-transform: uppercase; color: #8e8e93; }
   #cMusic { position: absolute; left: 40px; right: 40px; text-align: center; font-size: 11px; color: #636366;
@@ -216,7 +215,7 @@
   .t-paper .fc:after { background: rgba(0,0,0,.28); }
   .t-paper .fc .flap:after { background: #6b665c; }
   .t-paper #fColon i { background: #8a857b; }
-  .t-paper #fAmpm, .t-paper #cDate { color: #6d685f; }
+  .t-paper #cDate { color: #6d685f; }
   .t-paper #cMusic, .t-paper #cHint, .t-paper .wc .wday { color: #8e897f; }
   .t-paper .wc { background: rgba(255,255,255,.55); box-shadow: inset 0 0 0 .5px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.06); }
   .t-paper .wc .wtime { color: #1d1d1f; }
@@ -228,7 +227,7 @@
   .t-amber .fc .t { background: linear-gradient(180deg, #1d1b17 0%, #171512 100%); }
   .t-amber .fc .b { background: linear-gradient(180deg, #13110e 0%, #0f0e0b 100%); }
   .t-amber #fColon i { background: #ffb43f; }
-  .t-amber #fAmpm, .t-amber #cDate, .t-amber .wc .wcity, .t-amber .wc .wtime small { color: #a8783a; }
+  .t-amber #cDate, .t-amber .wc .wcity, .t-amber .wc .wtime small { color: #a8783a; }
   .t-amber .wc { background: rgba(255,180,63,.06); box-shadow: inset 0 0 0 .5px rgba(255,180,63,.16); }
   .t-amber .wc .wtime { color: #ffb43f; }
   .t-amber #cMusic, .t-amber #cHint, .t-amber .wc .wday { color: #6e5228; }
@@ -239,7 +238,7 @@
   .t-mint .fc .t { background: linear-gradient(180deg, #0e1d13 0%, #0b1810 100%); }
   .t-mint .fc .b { background: linear-gradient(180deg, #09140d 0%, #07100a 100%); }
   .t-mint #fColon i { background: #3dff8f; }
-  .t-mint #fAmpm, .t-mint #cDate, .t-mint .wc .wcity, .t-mint .wc .wtime small { color: #2a9d5a; }
+  .t-mint #cDate, .t-mint .wc .wcity, .t-mint .wc .wtime small { color: #2a9d5a; }
   .t-mint .wc { background: rgba(61,255,143,.05); box-shadow: inset 0 0 0 .5px rgba(61,255,143,.16); }
   .t-mint .wc .wtime { color: #3dff8f; }
   .t-mint #cMusic, .t-mint #cHint, .t-mint .wc .wday { color: #1f6b3f; }
@@ -250,7 +249,6 @@
   .t-ocean .fc .b { background: linear-gradient(180deg, #153b5e 0%, #11314f 100%); }
   .t-ocean .fc:after { background: #04101c; }
   .t-ocean #fColon i { background: #6cc4ff; }
-  .t-ocean #fAmpm { color: #a9d4f5; }
   .t-ocean #cDate, .t-ocean .wc .wcity, .t-ocean .wc .wtime small { color: #7fb0d6; }
   .t-ocean .wc { background: rgba(108,196,255,.08); box-shadow: inset 0 0 0 .5px rgba(108,196,255,.2); }
   .t-ocean #cMusic, .t-ocean #cHint, .t-ocean .wc .wday { color: #4f7899; }
@@ -261,7 +259,6 @@
   .t-sunset .fc .b { background: linear-gradient(180deg, #cd6c4a 0%, #bb5e3e 100%); }
   .t-sunset .fc:after { background: #5a2716; }
   .t-sunset #fColon i { background: #ec9a74; }
-  .t-sunset #fAmpm { color: #ffe1d2; }
   .t-sunset #cDate, .t-sunset .wc .wcity, .t-sunset .wc .wtime small { color: #e09a7b; }
   .t-sunset .wc { background: rgba(217,119,87,.1); box-shadow: inset 0 0 0 .5px rgba(236,154,116,.22); }
   .t-sunset #cMusic, .t-sunset #cHint, .t-sunset .wc .wday { color: #9a5f47; }
@@ -376,7 +373,7 @@
   <div id="clockView" class="view">
     <div id="clockInner">
       <div id="fc">
-        <div class="fpair" id="fH"><div class="fc"></div><div class="fc"></div><span id="fAmpm"></span></div>
+        <div class="fpair" id="fH"><div class="fc"></div><div class="fc"></div></div>
         <div id="fColon"><i></i><i></i></div>
         <div class="fpair" id="fM"><div class="fc"></div><div class="fc"></div></div>
         <div class="fpair" id="fS"><div class="fc"></div><div class="fc"></div></div>
@@ -675,7 +672,7 @@
   }
   function digits() {
     var d = wall(macTz), t = hm(d);
-    var h = t.h.length < 2 ? ' ' + t.h : t.h;   // 12-hour clocks leave the first card blank before 10
+    var h = t.h.length < 2 ? '0' + t.h : t.h;   // always two hour digits (07:37), even in 12-hour time
     return { v: [h.charAt(0), h.charAt(1), t.m.charAt(0), t.m.charAt(1), pad(d.getUTCSeconds()).charAt(0), pad(d.getUTCSeconds()).charAt(1)],
              ap: t.ap, d: d };
   }
@@ -686,7 +683,6 @@
       if (cascade) (function (c, n) { setTimeout(function () { flipTo(c, digits().v[n], true); }, 120 + n * 90); })(cards[i], i);
       else flipTo(cards[i], x.v[i], true);
     }
-    $('fAmpm').textContent = x.ap;
     $('cDate').textContent = DAYS[x.d.getUTCDay()] + ', ' + x.d.getUTCDate() + ' ' + MONTHS[x.d.getUTCMonth()];
     if (x.d.getUTCSeconds() === 0) { renderWorld(false); drift(); }
   }
