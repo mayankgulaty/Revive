@@ -158,10 +158,11 @@ let routes: (HTTPRequest, HTTPConnection) -> Void = { req, conn in
         guard Launcher.open(keyParams(p)) else { return conn.respond(404, text: "can't open that") }
         conn.respond(text: "ok")
     case ("GET", "/clocks"):
-        conn.respondJSON(["selected": WorldClocks.selected(), "all": WorldClocks.all(), "max": WorldClocks.maxCount])
+        conn.respondJSON(["selected": WorldClocks.selectedKeys(), "all": WorldClocks.all(), "max": WorldClocks.maxCount])
     case ("POST", "/clocks"):
+        // Body: ids=<zone|city>\n<zone|city>… in display order.
         let ids = (p["ids"] ?? "").split(separator: "\n").map(String.init)
-        do { conn.respondJSON(["saved": try WorldClocks.save(ids)]) }
+        do { conn.respondJSON(["saved": try WorldClocks.save(ids).count]) }
         catch { conn.respond(500, text: error.localizedDescription) }
     case ("POST", "/claude"):
         let text = (p["text"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)

@@ -205,6 +205,75 @@
   @-webkit-keyframes hintFade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
   @keyframes hintFade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
 
+  /* ---- clock themes: a t-<name> class on #clockView, and bg-<name> on <html> for the page background.
+     (Not t-<name> on <html>: that would also restyle the theme chips in the settings sheet.) ---- */
+  /* Paper: light cards, like a desk flip clock */
+  html.night.bg-paper, html.night.bg-paper body, #clockView.t-paper, .tchip.t-paper .tbg { background: #e7e3da; }
+  .t-paper #fc, .t-paper .fc { color: #1d1d1f; }
+  .t-paper .fc { box-shadow: 0 .03em .08em rgba(0,0,0,.2); }
+  .t-paper .fc .t { background: linear-gradient(180deg, #fdfcf9 0%, #f3f1ec 100%); }
+  .t-paper .fc .b { background: linear-gradient(180deg, #ebe8e1 0%, #e1ddd4 100%); }
+  .t-paper .fc:after { background: rgba(0,0,0,.28); }
+  .t-paper .fc .flap:after { background: #6b665c; }
+  .t-paper #fColon i { background: #8a857b; }
+  .t-paper #fAmpm, .t-paper #cDate { color: #6d685f; }
+  .t-paper #cMusic, .t-paper #cHint, .t-paper .wc .wday { color: #8e897f; }
+  .t-paper .wc { background: rgba(255,255,255,.55); box-shadow: inset 0 0 0 .5px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.06); }
+  .t-paper .wc .wtime { color: #1d1d1f; }
+  .t-paper .wc .wcity, .t-paper .wc .wtime small { color: #6d685f; }
+  /* Amber: an airport departures board */
+  html.night.bg-amber, html.night.bg-amber body, #clockView.t-amber, .tchip.t-amber .tbg { background: #0a0907; }
+  .t-amber #fc, .t-amber .fc { color: #ffb43f; }
+  .t-amber .fc .h span { text-shadow: 0 0 .09em rgba(255,166,40,.45); }
+  .t-amber .fc .t { background: linear-gradient(180deg, #1d1b17 0%, #171512 100%); }
+  .t-amber .fc .b { background: linear-gradient(180deg, #13110e 0%, #0f0e0b 100%); }
+  .t-amber #fColon i { background: #ffb43f; }
+  .t-amber #fAmpm, .t-amber #cDate, .t-amber .wc .wcity, .t-amber .wc .wtime small { color: #a8783a; }
+  .t-amber .wc { background: rgba(255,180,63,.06); box-shadow: inset 0 0 0 .5px rgba(255,180,63,.16); }
+  .t-amber .wc .wtime { color: #ffb43f; }
+  .t-amber #cMusic, .t-amber #cHint, .t-amber .wc .wday { color: #6e5228; }
+  /* Terminal: green phosphor */
+  html.night.bg-mint, html.night.bg-mint body, #clockView.t-mint, .tchip.t-mint .tbg { background: #020a05; }
+  .t-mint #fc, .t-mint .fc { color: #3dff8f; }
+  .t-mint .fc .h span { text-shadow: 0 0 .1em rgba(61,255,143,.45); }
+  .t-mint .fc .t { background: linear-gradient(180deg, #0e1d13 0%, #0b1810 100%); }
+  .t-mint .fc .b { background: linear-gradient(180deg, #09140d 0%, #07100a 100%); }
+  .t-mint #fColon i { background: #3dff8f; }
+  .t-mint #fAmpm, .t-mint #cDate, .t-mint .wc .wcity, .t-mint .wc .wtime small { color: #2a9d5a; }
+  .t-mint .wc { background: rgba(61,255,143,.05); box-shadow: inset 0 0 0 .5px rgba(61,255,143,.16); }
+  .t-mint .wc .wtime { color: #3dff8f; }
+  .t-mint #cMusic, .t-mint #cHint, .t-mint .wc .wday { color: #1f6b3f; }
+  /* Ocean: deep blue cards */
+  html.night.bg-ocean, html.night.bg-ocean body, #clockView.t-ocean, .tchip.t-ocean .tbg { background: #04101c; }
+  .t-ocean #fc, .t-ocean .fc { color: #eef8ff; }
+  .t-ocean .fc .t { background: linear-gradient(180deg, #22598a 0%, #1b4a74 100%); }
+  .t-ocean .fc .b { background: linear-gradient(180deg, #153b5e 0%, #11314f 100%); }
+  .t-ocean .fc:after { background: #04101c; }
+  .t-ocean #fColon i { background: #6cc4ff; }
+  .t-ocean #fAmpm { color: #a9d4f5; }
+  .t-ocean #cDate, .t-ocean .wc .wcity, .t-ocean .wc .wtime small { color: #7fb0d6; }
+  .t-ocean .wc { background: rgba(108,196,255,.08); box-shadow: inset 0 0 0 .5px rgba(108,196,255,.2); }
+  .t-ocean #cMusic, .t-ocean #cHint, .t-ocean .wc .wday { color: #4f7899; }
+  /* Sunset: warm orange cards */
+  html.night.bg-sunset, html.night.bg-sunset body, #clockView.t-sunset, .tchip.t-sunset .tbg { background: #160b08; }
+  .t-sunset #fc, .t-sunset .fc { color: #fff8f2; }
+  .t-sunset .fc .t { background: linear-gradient(180deg, #ec9a74 0%, #de7d59 100%); }
+  .t-sunset .fc .b { background: linear-gradient(180deg, #cd6c4a 0%, #bb5e3e 100%); }
+  .t-sunset .fc:after { background: #5a2716; }
+  .t-sunset #fColon i { background: #ec9a74; }
+  .t-sunset #fAmpm { color: #ffe1d2; }
+  .t-sunset #cDate, .t-sunset .wc .wcity, .t-sunset .wc .wtime small { color: #e09a7b; }
+  .t-sunset .wc { background: rgba(217,119,87,.1); box-shadow: inset 0 0 0 .5px rgba(236,154,116,.22); }
+  .t-sunset #cMusic, .t-sunset #cHint, .t-sunset .wc .wday { color: #9a5f47; }
+  /* Theme chooser chips in the clock settings: a real mini flip card in each theme */
+  .themes { padding: 6px 0 8px; overflow: hidden; }
+  .tchip { float: left; width: 62px; margin: 0 4px 4px 0; text-align: center; }
+  .tchip .tbg { position: relative; height: 46px; border-radius: 10px; background: #000; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.14); }
+  .tchip.on .tbg { box-shadow: 0 0 0 2px #0a84ff; }
+  .tchip .fc { font: 600 34px "SF Pro Rounded", ui-rounded, -apple-system, "Helvetica Neue", sans-serif; left: 18px; top: 4px; }
+  .tchip > span { display: block; margin-top: 5px; font-size: 10px; color: #c7c7cc; }
+  .tchip.on > span { color: #fff; font-weight: 600; }
+
   /* ---- sheets ---- */
   .scrim { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,.55); z-index: 10; display: none; }
   .scrim.on { display: block; }
@@ -497,9 +566,8 @@
     view = name;
     $('deck').className = 'view' + (name === 'deck' ? ' on' : '');
     $('phone').className = 'view' + (name === 'phone' ? ' on' : '');
-    $('clockView').className = 'view' + (name === 'clock' ? ' on' : '');
     $('status').style.display = name === 'clock' ? 'none' : '';
-    document.documentElement.className = name === 'clock' ? 'night' : '';
+    applyTheme();
     var segs = $('seg').children;
     for (var i = 0; i < segs.length; i++) segs[i].className = segs[i].getAttribute('data-view') === name ? 'on' : '';
     if (name === 'phone') phoneEnter(); else pollStats();
@@ -525,14 +593,31 @@
   var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   var skew = 0, synced = false, macTz = -new Date().getTimezoneOffset() * 60, zones = [];
-  var hour12 = !/15/.test(new Date(2020, 0, 1, 15, 0, 0).toLocaleTimeString());   // follow the phone's 12/24-hour setting
   function macNow() { return Date.now() + skew; }
   function wall(offset) { return new Date(macNow() + offset * 1000); }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
+  // 12- or 24-hour time: "auto" follows the phone's own setting. Saved per phone, like the clock theme.
+  var FORMATS = ['auto', '12', '24'];
+  var phone12 = !/15/.test(new Date(2020, 0, 1, 15, 0, 0).toLocaleTimeString());
+  function timeFormat() { var f = store('hours'); return FORMATS.indexOf(f) >= 0 ? f : 'auto'; }
+  function use12() { var f = timeFormat(); return f === 'auto' ? phone12 : f === '12'; }
   function hm(d) {   // { h: '9', m: '05', ap: 'AM' } from a wall() date
-    var h = d.getUTCHours(), ap = '';
-    if (hour12) { ap = h < 12 ? 'AM' : 'PM'; h = h % 12 || 12; }
-    return { h: hour12 ? String(h) : pad(h), m: pad(d.getUTCMinutes()), ap: ap };
+    var h = d.getUTCHours(), ap = '', twelve = use12();
+    if (twelve) { ap = h < 12 ? 'AM' : 'PM'; h = h % 12 || 12; }
+    return { h: twelve ? String(h) : pad(h), m: pad(d.getUTCMinutes()), ap: ap };
+  }
+  // Clock themes: a t-<id> class on the clock (and the page background while it shows).
+  var THEMES = [{ id: 'graphite', name: 'Graphite' }, { id: 'paper', name: 'Paper' }, { id: 'amber', name: 'Amber' },
+                { id: 'mint', name: 'Terminal' }, { id: 'ocean', name: 'Ocean' }, { id: 'sunset', name: 'Sunset' }];
+  function theme() {
+    var t = store('theme');
+    for (var i = 0; i < THEMES.length; i++) if (THEMES[i].id === t) return t;
+    return 'graphite';
+  }
+  function applyTheme() {
+    var on = view === 'clock', t = ' t-' + theme();
+    $('clockView').className = 'view' + (on ? ' on' : '') + t;
+    document.documentElement.className = on ? 'night bg-' + theme() : '';
   }
   function syncTime(t) {
     if (!t) return;
@@ -710,9 +795,33 @@
       renderZones();
     });
   }
-  function zoneById(id) {
-    for (var i = 0; i < zoneData.all.length; i++) if (zoneData.all[i].id === id) return zoneData.all[i];
+  function zoneKey(z) { return z.zone + '|' + z.city; }
+  function zoneById(key) {
+    for (var i = 0; i < zoneData.all.length; i++) if (zoneKey(zoneData.all[i]) === key) return zoneData.all[i];
     return null;
+  }
+  function settingRow(box, icon, label, value, onTap) {
+    var r = document.createElement('div');
+    r.className = 'erow noimg setting';
+    r.innerHTML = '<div class="ck">' + icon + '</div><div class="nm"></div><div class="side"></div>';
+    r.children[1].textContent = label;
+    r.lastChild.textContent = value;
+    r.addEventListener('click', onTap);
+    box.appendChild(r);
+  }
+  // Theme chips: each holds a real mini flip card, styled by the theme's own CSS.
+  function themeChips(box) {
+    var wrap = document.createElement('div');
+    wrap.className = 'themes';
+    THEMES.forEach(function (t) {
+      var c = document.createElement('div');
+      c.className = 'tchip t-' + t.id + (t.id === theme() ? ' on' : '');
+      c.innerHTML = '<div class="tbg"><div class="fc"><div class="h t"><span>7</span></div><div class="h b"><span>7</span></div></div></div><span></span>';
+      c.lastChild.textContent = t.name;
+      c.addEventListener('click', function () { store('theme', t.id); applyTheme(); renderZones(); });
+      wrap.appendChild(c);
+    });
+    box.appendChild(wrap);
   }
   function offsetLabel(sec) {
     var a = Math.abs(sec), h = Math.floor(a / 3600), m = Math.round(a % 3600 / 60);
@@ -722,44 +831,53 @@
     if (!zoneData) return;
     var box = $('zList'), q = $('zFilter').value.toLowerCase(), max = zoneData.max || 3, shown = 0;
     box.innerHTML = '';
-    $('zCount').textContent = zDraft.length + ' of ' + max + ' clocks · tap to add or remove';
+    $('zCount').textContent = zDraft.length + ' of ' + max + ' world clocks · search a city or country';
     if (!q) {
-      var idle = idleMinutes(), r = document.createElement('div');
-      r.className = 'erow noimg setting';
-      r.innerHTML = '<div class="ck">⏱</div><div class="nm">Show this clock when idle</div><div class="side"></div>';
-      r.lastChild.textContent = idle ? 'after ' + idle + ' min' : 'Off';
-      r.addEventListener('click', function () {
-        var next = IDLE_CHOICES[(IDLE_CHOICES.indexOf(idleMinutes()) + 1) % IDLE_CHOICES.length];
-        store('idle', String(next)); renderZones();
+      section(box, 'Clock');
+      var idle = idleMinutes();
+      settingRow(box, '⏱', 'Show the clock when idle', idle ? 'after ' + idle + ' min' : 'Off', function () {
+        store('idle', String(IDLE_CHOICES[(IDLE_CHOICES.indexOf(idle) + 1) % IDLE_CHOICES.length])); renderZones();
       });
-      box.appendChild(r);
+      var f = timeFormat();
+      settingRow(box, '◷', 'Time format', f === 'auto' ? 'Automatic (' + (phone12 ? '12' : '24') + '-hour)' : f + '-hour', function () {
+        store('hours', FORMATS[(FORMATS.indexOf(f) + 1) % FORMATS.length]);
+        tick(); renderWorld(false); if (view === 'clock') renderClock(false);
+        renderZones();
+      });
+      section(box, 'Theme');
+      themeChips(box);
+      if (zDraft.length) section(box, 'World clocks');
     }
     function row(z, idx) {
-      var on = idx >= 0, full = !on && zDraft.length >= max;
+      var on = idx >= 0, full = !on && zDraft.length >= max, key = zoneKey(z);
       var r = document.createElement('div');
       r.className = 'erow noimg' + (on ? ' on' : '') + (full ? ' full' : '');
       r.innerHTML = '<div class="ck">' + (on ? idx + 1 : '') + '</div><div class="nm"></div><div class="side"></div>';
-      r.children[1].textContent = z.city + (z.region ? ' · ' + z.region.replace(/_/g, ' ') : '');
+      r.children[1].textContent = z.city + (z.country ? ' · ' + z.country : '');
       r.children[2].textContent = offsetLabel(z.offset);
       r.addEventListener('click', function () {
         if (on) zDraft.splice(idx, 1);
         else if (full) return toast('Remove a city first (' + max + ' at most)');
-        else zDraft.push(z.id);
+        else zDraft.push(key);
         renderZones();
       });
       box.appendChild(r);
     }
-    zDraft.forEach(function (id, i) { var z = zoneById(id); if (z) row(z, i); });
-    var head = document.createElement('div');
-    head.className = 'esec'; head.textContent = q ? 'Matches' : 'All cities';
-    box.appendChild(head);
+    zDraft.forEach(function (key, i) { var z = zoneById(key); if (z) row(z, i); });
+    section(box, q ? 'Matches' : 'All cities');
+    // Matches the city, its country ("India" finds Kolkata, New Delhi, Mumbai…) or the zone id.
     // Hundreds of rows are slow on an iPhone 4S: show the first 80 and let search find the rest.
-    for (var i = 0; i < zoneData.all.length && shown < 80; i++) {
-      var z = zoneData.all[i];
-      if (zDraft.indexOf(z.id) >= 0) continue;
-      if (q && (z.city + ' ' + z.region + ' ' + z.id).toLowerCase().indexOf(q) < 0) continue;
-      row(z, -1); shown++;
+    // Two passes when searching: cities or countries that start with the text first, then any other match.
+    for (var pass = q ? 0 : 1; pass < 2; pass++) {
+      for (var i = 0; i < zoneData.all.length && shown < 80; i++) {
+        var z = zoneData.all[i];
+        if (zDraft.indexOf(zoneKey(z)) >= 0) continue;
+        var starts = z.city.toLowerCase().indexOf(q) === 0 || z.country.toLowerCase().indexOf(q) === 0;
+        if (q && (pass === 0 ? !starts : starts || (z.city + ' ' + z.country + ' ' + z.zone).toLowerCase().indexOf(q) < 0)) continue;
+        row(z, -1); shown++;
+      }
     }
+    if (q && !shown) section(box, 'No city or country matches “' + q + '”');
     if (shown === 80) { var more = document.createElement('div'); more.className = 'esec'; more.textContent = 'Search to find more cities'; box.appendChild(more); }
   }
   $('zFilter').addEventListener('input', renderZones);
@@ -1262,7 +1380,11 @@
       loadKeys();
       show(modern && store('view') === 'phone' ? 'phone' : 'deck');
       if (/edit/.test(location.search)) setTimeout(openEditor, 300);
-      if (/clock/.test(location.search)) show('clock');   // e.g. a Home Screen bookmark that opens as a clock
+      // Link options for Home Screen bookmarks: ?clock opens the clock, ?settings its settings, ?theme=amber picks a theme.
+      var th = /theme=(\w+)/.exec(location.search);
+      if (th) store('theme', th[1]);
+      if (/clock|settings/.test(location.search)) show('clock');
+      if (/settings/.test(location.search)) setTimeout(openZones, 300);
     });
   }
   tap($('go'), function () {

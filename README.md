@@ -12,7 +12,7 @@ No jailbreak, no App Store, nothing to install on the phone: it runs in Safari, 
 ## Features
 
 - **8 big keys:** 7 of your choice plus **Take note**. A key can open a **Mac app**, a **website** (App Store Connect, Gmail, a dashboard…) in your default browser, or a **folder** in Finder. Website keys show the site's own icon. Hold any key to edit.
-- **Flip clock when idle:** after a few minutes without a touch, the deck turns into a full-screen split-flap clock with animated digits, the date and up to **3 world clocks**. Tap to go back, hold to pick cities and the idle delay. You can also tap the time in the top-left corner.
+- **Flip clock when idle:** after a few minutes without a touch, the deck turns into a full-screen split-flap clock with animated digits, the date and up to **3 world clocks**. It has **6 themes** (Graphite, Paper, Amber, Terminal, Ocean, Sunset) and a **12- or 24-hour** setting. Tap to go back; hold for settings. You can also tap the time in the top-left corner.
 - **Take note → new Claude chat:** dictate a note, and it opens and sends a fresh conversation in the [Claude](https://claude.ai/download) desktop app.
 - **Now playing:** artwork, track, progress and previous / play-pause / next for **Spotify** or **Apple Music**. The card only appears while music is playing (and for a minute after you pause), and the keys move into its space otherwise.
 - **Internet widget:** download, upload and ping (macOS's built-in `networkQuality`), plus a live traffic graph. Tap it to re-test.
@@ -60,11 +60,24 @@ It prints a QR code and links, and shows the same menu-bar icon. Ctrl-C quits.
 1. Open the link in **Safari**: scan the QR code (iOS 11+), or type the address shown under it, like `http://your-mac.local:8045/#k=<token>`.
 2. Tap **Share → Add to Home Screen** and launch it from there to run it full screen.
 3. **Hold any key** to choose your keys. *Add a website…* takes an address such as `appstoreconnect.apple.com`. *Add a folder by path…* takes a path such as `~/Documents/GitHub`.
-4. **Hold the clock** (or wait for it) to pick world clocks and how long the deck waits before showing it: off, 1, 3, 10 or 30 minutes.
+4. **Hold the clock** for its settings:
+   - **Show the clock when idle:** off, or after 1, 3, 10 or 30 minutes.
+   - **Time format:** automatic (follows the phone), 12-hour or 24-hour.
+   - **Theme.**
+   - **World clocks:** search by city or country, so "India" finds New Delhi, Mumbai, Bengaluru…
+
+   The idle delay, time format and theme are saved on each phone. The world clocks are saved on the Mac.
 
 If `your-mac.local` doesn't load (some mesh or office networks block Bonjour), use the IP-address link shown underneath it instead.
 
-Tips for a dedicated desk display: set **Auto-Lock → Never**, and use **Guided Access** (Settings → Accessibility) to lock the phone to the deck. Add `?clock` to the link (`http://your-mac.local:8045/?clock#k=<token>`) for a bookmark that opens straight into the clock.
+Tips for a dedicated desk display: set **Auto-Lock → Never**, and use **Guided Access** (Settings → Accessibility) to lock the phone to the deck. Options you can add to the link for a Home Screen bookmark:
+
+| Add | Effect | Example |
+|---|---|---|
+| `?clock` | Opens straight into the clock | `http://your-mac.local:8045/?clock#k=<token>` |
+| `?settings` | Opens the clock settings | |
+| `?edit` | Opens the key editor | |
+| `theme=<name>` | Sets the clock theme: `graphite`, `paper`, `amber`, `mint` (Terminal), `ocean` or `sunset` | `?clock&theme=amber` |
 
 ### macOS permissions (asked on first use)
 
@@ -104,7 +117,7 @@ iPhone (Safari)                     Mac: OldPhoneDeck (Swift, no dependencies, m
 | App keys | `NSWorkspace` lists `/Applications`, renders icons, opens apps |
 | Website keys | Opens `http(s)` links only. Icons: the site's `apple-touch-icon` or favicon, fetched once and cached in `~/.oldphonedeck/icons`, or a coloured letter tile |
 | Folder keys | Opens existing folders in Finder (never apps or other packages) |
-| Flip clock | The phone draws it with CSS 3D flips. The Mac sends its own time and each world clock's UTC offset, because an old phone's clock drifts and iOS 9 has no time-zone support (`Intl`) |
+| Flip clock | The phone draws it with CSS 3D flips. The Mac sends its own time and each world clock's UTC offset, because an old phone's clock drifts and iOS 9 has no time-zone support (`Intl`). Cities come from the tz database's `zone.tab` (with countries), plus well-known cities that aren't time-zone names, such as New Delhi → Asia/Kolkata |
 | Take note | Opens `claude://claude.ai/new?q=…` (the same link the Claude app's own macOS Service uses), waits for Claude to come to the front, then presses Return |
 | Now playing | AppleScript to Spotify / Music, with a timeout so a pending permission prompt can't freeze it |
 | Internet | `/usr/bin/networkQuality -c` + `en*` interface byte counters |
