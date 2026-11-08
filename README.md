@@ -62,6 +62,7 @@ It prints a QR code and links, and shows the same menu-bar icon. Ctrl-C quits.
 4. **Hold the clock** for its settings:
    - **Show the clock when idle:** off, or after 1, 3, 10 or 30 minutes.
    - **Time format:** automatic (follows the phone), 12-hour or 24-hour.
+   - **Agent usage on the clock:** a thin line of plan-limit bars (and "needs you") under the world clocks. Shown or hidden.
    - **Theme.**
    - **Phone tab** (modern iPhones): show or hide the camera + mic tab.
    - **World clocks:** search by city or country, so "India" finds New Delhi, Mumbai, Bengaluru…
