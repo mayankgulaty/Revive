@@ -165,10 +165,6 @@ Settings live in `~/.revive/` (menu bar → **Show Settings Folder**):
 | Take note opens Claude but doesn't send | Grant Accessibility to Revive (or to your terminal app if you run it from one). |
 | Mic says "No audio device matching BlackHole" | Install BlackHole 2ch, or ignore it if you don't use the mic. |
 
-## Built with Claude Code
-
-This project was built with [Claude Code](https://claude.com/claude-code). Want your own variant? Point Claude Code at this repo and ask for changes like *"add a weather widget"*, *"make the keys run Shortcuts"* or *"add a Pomodoro timer"*. Ask it to keep `index.html` ES5 if you want old iPhones to keep working.
-
 ## Credits
 
 Revive started as a fork of [OldPhoneDeck](https://github.com/GLAUCOMA82/OldPhoneDeck) (MIT).
