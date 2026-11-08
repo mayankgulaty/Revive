@@ -35,11 +35,14 @@
     -webkit-font-feature-settings: "tnum"; font-feature-settings: "tnum"; }
   #ampm { font-size: 10px; font-weight: 700; color: #8e8e93; margin-left: 3px; letter-spacing: .3px; }
   #date { display: block; margin-top: 3px; font-size: 9px; font-weight: 600; letter-spacing: .9px; text-transform: uppercase; color: #8e8e93; }
-  #seg { position: absolute; left: 50%; top: 11px; margin-left: -66px; width: 132px; height: 22px; display: none;
+  /* Tabs: Deck · Agents (· Phone). JS sets the width from the number of tabs shown. */
+  #seg { position: absolute; left: 50%; top: 11px; margin-left: -60px; width: 120px; height: 22px;
     background: rgba(118,118,128,.24); border-radius: 8px; }
-  #seg div { float: left; width: 62px; height: 18px; margin: 2px; line-height: 18px; text-align: center;
+  #seg div { float: left; width: 56px; height: 18px; margin: 2px; line-height: 18px; text-align: center; position: relative;
     font-size: 11px; font-weight: 600; color: #c7c7cc; border-radius: 6px; }
   #seg div.on { background: #636366; color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+  /* A dot on the Agents tab when an agent needs you */
+  #seg div.alert:after { content: ""; position: absolute; right: 4px; top: 3px; width: 6px; height: 6px; border-radius: 3px; background: #ff9f0a; }
   #right { position: absolute; right: 16px; top: 14px; font-size: 11px; font-weight: 600; color: #c7c7cc; white-space: nowrap; }
   #link { display: inline-block; width: 6px; height: 6px; border-radius: 3px; background: #ff453a; margin-right: 5px; vertical-align: 1px; }
   #link.ok { background: #30d158; }
@@ -113,6 +116,56 @@
   .mb svg { position: absolute; left: 9px; top: 9px; }
   .mb.play { background: #f5f5f7; margin: 0 1px; }
   .mb.down { -webkit-transform: scale(.9); transform: scale(.9); opacity: .7; }
+
+  /* ---- AI agents: strip on the deck + Agents tab ---- */
+  .sdot { display: inline-block; width: 7px; height: 7px; border-radius: 4px; background: #636366; vertical-align: 1px; }
+  .sdot.working { background: #30d158; -webkit-animation: pulse 1.4s ease-in-out infinite; animation: pulse 1.4s ease-in-out infinite; }
+  .sdot.needs { background: #ff9f0a; -webkit-animation: pulse .9s ease-in-out infinite; animation: pulse .9s ease-in-out infinite; }
+  .sdot.done { background: #0a84ff; }
+  @-webkit-keyframes pulse { 0%, 100% { opacity: 1; -webkit-transform: scale(1); } 50% { opacity: .45; -webkit-transform: scale(.8); } }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(.8); } }
+  #agStrip { position: absolute; height: 52px; padding: 0;
+    -webkit-transition: opacity .35s ease, top .4s ease; transition: opacity .35s ease, top .4s ease; }
+  #agStrip.gone { opacity: 0; pointer-events: none; }
+  #agStrip.alert { box-shadow: inset 0 0 0 1px rgba(255,159,10,.7); }
+  #agSum { position: absolute; left: 12px; top: 9px; right: 150px; }
+  #agSumTop { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #agSumTop .sdot { margin-right: 5px; }
+  #agSumSub { font-size: 10px; color: #8e8e93; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #agBars { position: absolute; right: 12px; top: 8px; width: 132px; }
+  .mbar { height: 18px; position: relative; }
+  .mbar b { position: absolute; left: 0; top: 2px; font-size: 9.5px; font-weight: 600; color: #aeaeb2; white-space: nowrap; }
+  .mbar i { position: absolute; left: 62px; right: 30px; top: 7px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.12); overflow: hidden; }
+  .mbar i u { display: block; height: 100%; border-radius: 2px; background: #30d158; }
+  .mbar span { position: absolute; right: 0; top: 2px; font-size: 9.5px; font-weight: 600; color: #f5f5f7;
+    -webkit-font-feature-settings: "tnum"; font-feature-settings: "tnum"; }
+  .mbar i u.lim-warn, .lrow i u.lim-warn { background: #ffd60a; }   /* 70% and up */
+  .mbar i u.lim-full, .lrow i u.lim-full { background: #ff453a; }   /* 90% and up */
+  /* Agents tab */
+  #agLimits { position: absolute; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .lcard { border-radius: 14px; padding: 9px 11px 10px; margin-bottom: 8px; background: rgba(255,255,255,.065);
+    box-shadow: inset 0 0 0 .5px rgba(255,255,255,.12); }
+  .lcard h4 { margin: 0 0 6px; font-size: 9.5px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: #8e8e93; }
+  .lrow { margin-top: 6px; }
+  .lrow .lt { font-size: 11px; color: #d1d1d6; overflow: hidden; }
+  .lrow .lt b { float: right; font-size: 13px; color: #fff; -webkit-font-feature-settings: "tnum"; font-feature-settings: "tnum"; }
+  .lrow i { display: block; height: 5px; margin-top: 4px; border-radius: 3px; background: rgba(255,255,255,.12); overflow: hidden; }
+  .lrow i u { display: block; height: 100%; border-radius: 3px; background: #30d158; }
+  .lrow .lr { font-size: 9.5px; color: #8e8e93; margin-top: 3px; }
+  .lnote { font-size: 10px; color: #8e8e93; line-height: 13px; }
+  #agList { position: absolute; overflow-y: scroll; -webkit-overflow-scrolling: touch; }
+  .ahead { padding: 8px 2px 4px; font-size: 9.5px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: #8e8e93; }
+  .ahead small { font-size: 9.5px; font-weight: 500; letter-spacing: 0; text-transform: none; color: #636366; margin-left: 4px; }
+  .arow { position: relative; height: 40px; border-bottom: .5px solid rgba(255,255,255,.08); }
+  .arow .sdot { position: absolute; left: 4px; top: 16px; }
+  .arow .at { position: absolute; left: 20px; right: 92px; top: 5px; font-size: 12.5px; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .arow .ad { position: absolute; left: 20px; right: 92px; top: 22px; font-size: 10px; color: #8e8e93;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .arow .as { position: absolute; right: 4px; top: 6px; font-size: 10px; font-weight: 600; text-align: right; }
+  .arow .aa { position: absolute; right: 4px; top: 22px; font-size: 9.5px; color: #636366; text-align: right; }
+  .as.working { color: #30d158; } .as.needs { color: #ff9f0a; } .as.done { color: #64d2ff; } .as.idle { color: #8e8e93; }
+  .aempty { padding: 6px 2px 10px; font-size: 10.5px; color: #636366; }
 
   /* ---- Phone tab (modern iPhones) ---- */
   #pvBox { position: absolute; left: 16px; top: 42px; height: 264px; border-radius: 18px; overflow: hidden;
@@ -350,6 +403,17 @@
       <canvas id="spark" width="208" height="36"></canvas>
     </div>
     <div id="bat" class="card"><h3>Batteries</h3><div id="batList"></div></div>
+    <!-- AI agents at a glance (in Now playing's place when no music plays). Tap for the Agents tab. -->
+    <div id="agStrip" class="card gone">
+      <div id="agSum"><div id="agSumTop"></div><div id="agSumSub"></div></div>
+      <div id="agBars"></div>
+    </div>
+  </div>
+
+  <!-- AI agents: live sessions and plan limits -->
+  <div id="agents" class="view">
+    <div id="agList"></div>
+    <div id="agLimits"></div>
   </div>
 
   <!-- Modern iPhones only: camera + mic to the Mac (needs HTTPS) -->
@@ -387,7 +451,7 @@
 
   <div id="status">
     <div id="clock"><span id="time">–</span><span id="ampm"></span><span id="date"></span></div>
-    <div id="seg"><div data-view="deck" class="on">Deck</div><div data-view="phone">Phone</div></div>
+    <div id="seg"><div data-view="deck" class="on">Deck</div><div data-view="agents" id="segAgents">Agents</div><div data-view="phone" id="segPhone">Phone</div></div>
     <div id="right"><span id="link"></span><span id="macName">Mac</span><span id="phoneBatt" style="display:none"><span class="batt"><i id="phoneBattFill"></i></span></span></div>
   </div>
 
@@ -514,15 +578,19 @@
     var net = $('net'), bat = $('bat'), cardW, netH = 104, batH;
     net.className = bat.className = 'card';
     $('hint').style.display = 'none';
-    // Now playing only takes space while something plays; the keys move into its place otherwise.
+    // The slot under the keys shows Now playing while music plays, otherwise the AI agents strip (if any agents).
+    // With neither, the keys move into its place.
+    var stripOn = !musicOn && agentsData.length > 0, bottomOn = musicOn || stripOn;
     $('music').className = 'card' + (musicOn ? '' : ' gone');
+    $('agStrip').className = 'card' + (stripOn ? '' : ' gone') + (stripOn && agentsAlert ? ' alert' : '');
     if (portrait) {
-      // Everything in one centered stack: keys, now playing, then the two widgets side by side.
-      var musicH = musicOn ? 4 + 58 : 0;
+      // Everything in one centered stack: keys, now playing / agents, then the two widgets side by side.
+      var musicH = bottomOn ? 4 + 58 : 0;
       var stackH = 208 + musicH + 12 + netH, top = Math.max(90, Math.round((H - stackH) / 2) + 10);
       $('seg').style.top = '50px';
       px($('keys'), { left: (W - 316) / 2, top: top });
       px($('music'), { left: 16, top: top + 208 + 4, width: W - 32 });
+      px($('agStrip'), { left: 16, top: top + 208 + 4, width: W - 32 });
       cardW = (W - 42) / 2; batH = netH;
       var cardTop = top + 208 + musicH + 12;
       px(net, { left: 16, top: cardTop, width: cardW, height: netH });
@@ -537,8 +605,9 @@
       var keysArea = colLeft - 16 - 16;                       // left column: keys on top, now playing below
       var keysLeft = 16 + Math.max(0, (keysArea - 316) / 2);
       // Two rows of keys are ~192pt tall: centre them in the column when there's no Now playing below.
-      px($('keys'), { left: keysLeft, top: musicOn ? 52 : 52 + Math.round((304 - 52 - 192) / 2) });
+      px($('keys'), { left: keysLeft, top: bottomOn ? 52 : 52 + Math.round((304 - 52 - 192) / 2) });
       px($('music'), { left: 16, top: 252, width: Math.max(316, keysArea) });
+      px($('agStrip'), { left: 16, top: 252, width: Math.max(316, keysArea) });
       batH = 304 - (52 + netH + 10);
       px(net, { left: colLeft, top: 52, width: cardW, height: netH });
       px(bat, { left: colLeft, top: 52 + netH + 10, width: cardW });
@@ -551,6 +620,7 @@
     spark.width = sw * 2; spark.height = sh * 2;
     px(spark, { width: sw, height: sh });
     drawSpark(lastHistory); renderBatteries(lastBatteries);
+    layoutAgents();
     layoutClock();
   }
   window.addEventListener('resize', fit);
@@ -562,26 +632,38 @@
     var was = view;
     view = name;
     $('deck').className = 'view' + (name === 'deck' ? ' on' : '');
+    $('agents').className = 'view' + (name === 'agents' ? ' on' : '');
     $('phone').className = 'view' + (name === 'phone' ? ' on' : '');
     $('status').style.display = name === 'clock' ? 'none' : '';
     applyTheme();
-    var segs = $('seg').children;
-    for (var i = 0; i < segs.length; i++) segs[i].className = segs[i].getAttribute('data-view') === name ? 'on' : '';
+    segClasses();
+    if (name === 'agents') renderAgentsTab();   // what we have now; the poll below refreshes it
     if (name === 'phone') phoneEnter(); else pollStats();
     if (name === 'clock' && was !== 'clock') clockEnter();
     if (name !== 'clock') { clearTimeout(clockTimer); store('view', name); }
   }
   // The Phone tab (camera + mic to the Mac) only exists on modern iPhones, and can be hidden per phone.
   function phoneTabOn() { return modern && store('phoneTab') !== 'off'; }
+  // Tabs: Deck and Agents on every phone, Phone too when shown. The bar is sized to the tabs it has.
   function applyPhoneTab() {
-    $('seg').style.display = phoneTabOn() ? 'block' : 'none';
+    $('segPhone').style.display = phoneTabOn() ? '' : 'none';
+    var n = phoneTabOn() ? 3 : 2, w = n * 60;
+    $('seg').style.width = w + 'px'; $('seg').style.marginLeft = -w / 2 + 'px';
     if (!phoneTabOn() && view === 'phone') show('deck');
   }
-  if (modern) {
-    applyPhoneTab();
+  // The current tab is highlighted; Agents gets an orange dot while an agent needs you.
+  function segClasses() {
+    var segs = $('seg').children;
+    for (var i = 0; i < segs.length; i++) {
+      var v = segs[i].getAttribute('data-view');
+      segs[i].className = (v === view ? 'on' : '') + (v === 'agents' && agentsAlert && view !== 'agents' ? ' alert' : '');
+    }
+  }
+  applyPhoneTab();
+  (function () {
     var segs = $('seg').children;
     for (var i = 0; i < segs.length; i++) (function (s) { tap(s, function () { show(s.getAttribute('data-view')); }); })(segs[i]);
-  }
+  })();
   function sheet(id, on) {   // keeps other classes (e.g. "picker")
     var el = $(id);
     el.className = el.className.replace(/\s*\bon\b/g, '') + (on ? ' on' : '');
@@ -1223,6 +1305,7 @@
       drawSpark(d.net.history);
       renderBatteries(d.batteries);
       renderMusic(d.music);
+      renderAgents(d.agents);
     });
   }
   setInterval(pollStats, 2000);
@@ -1274,6 +1357,132 @@
   tap($('mPrev'), function () { media('previous'); });
   tap($('mInfo'), function () { media('open'); toast('Opening the player on the Mac'); });
   setPlayIcon(false);
+
+  // ---------- AI agents (Claude Code, Cursor, Grok Bot on the Mac) ----------
+  // The Mac reads each agent's local files; /stats carries the result. States: working, needs (waiting for
+  // your answer), done (finished, not looked at yet), idle.
+  var agentsData = [], agentsAlert = false;
+  var STATE_LABEL = { working: 'Working', needs: 'Needs you', done: 'Done', idle: 'Idle' };
+  var SHORT = { claude: 'Claude', cursor: 'Cursor', grok: 'Grok' };
+  var LIMIT_SHORT = { '5-hour': '5h', 'Weekly': 'week', 'Weekly Opus': 'Opus wk', 'Spend': 'spend' };
+  function agoShort(ms) {
+    var s = Math.max(0, Math.round((macNow() - ms) / 1000));
+    return s < 60 ? 'now' : s < 3600 ? Math.round(s / 60) + 'm ago' : s < 86400 ? Math.round(s / 3600) + 'h ago' : Math.round(s / 86400) + 'd ago';
+  }
+  function resetLabel(ms) {
+    var mins = Math.round((ms - macNow()) / 60000);
+    if (mins <= 0) return 'resetting now';
+    if (mins < 60) return 'resets in ' + mins + ' min';
+    var d = new Date(ms + macTz * 1000), today = wall(macTz), t = hm(d);
+    var same = d.getUTCDate() === today.getUTCDate() && mins < 1440;
+    return 'resets ' + (same ? '' : DAYS[d.getUTCDay()].slice(0, 3) + ' ') + t.h + ':' + t.m + (t.ap ? ' ' + t.ap : '');
+  }
+  function limitClass(p) { return p >= 90 ? 'lim-full' : p >= 70 ? 'lim-warn' : ''; }
+  function countStates() {
+    var c = { working: 0, needs: 0, done: 0 };
+    agentsData.forEach(function (a) { a.sessions.forEach(function (s) { if (c[s.state] !== undefined) c[s.state]++; }); });
+    return c;
+  }
+  function renderAgents(list) {
+    var hadAny = agentsData.length > 0;
+    agentsData = list || [];
+    var c = countStates(), alert = c.needs > 0;
+    if (alert !== agentsAlert || hadAny !== agentsData.length > 0) { agentsAlert = alert; layout(); segClasses(); }
+    renderStrip(c);
+    if (view === 'agents') renderAgentsTab();
+  }
+  // Deck strip: what's happening now on the left, the fullest plan limits on the right.
+  function renderStrip(c) {
+    var parts = [];
+    if (c.needs) parts.push('<span class="sdot needs"></span>' + c.needs + ' need' + (c.needs > 1 ? '' : 's') + ' you');
+    if (c.working) parts.push('<span class="sdot working"></span>' + c.working + ' working');
+    if (c.done) parts.push('<span class="sdot done"></span>' + c.done + ' done');
+    $('agSumTop').innerHTML = parts.length ? parts.join('&nbsp;&nbsp; ') : '<span class="sdot"></span>All agents idle';
+    var running = agentsData.filter(function (a) { return a.running; }).map(function (a) { return a.name; });
+    $('agSumSub').textContent = running.length ? running.join(' · ') + ' running' : 'No agents running';
+    var limits = [];
+    agentsData.forEach(function (a) { a.limits.forEach(function (l) { limits.push({ a: a, l: l }); }); });
+    limits.sort(function (x, y) { return y.l.percent - x.l.percent; });
+    var box = $('agBars');
+    box.innerHTML = '';
+    limits.slice(0, 2).forEach(function (x) {
+      var r = document.createElement('div'), p = Math.round(x.l.percent);
+      r.className = 'mbar';
+      r.innerHTML = '<b></b><i><u></u></i><span></span>';
+      r.children[0].textContent = (SHORT[x.a.id] || x.a.name) + ' ' + (LIMIT_SHORT[x.l.label] || x.l.label);
+      r.children[1].firstChild.style.width = Math.min(100, p) + '%';
+      r.children[1].firstChild.className = limitClass(p);
+      r.children[2].textContent = p + '%';
+      box.appendChild(r);
+    });
+    $('agSum').style.right = limits.length ? '150px' : '12px';
+  }
+  function renderAgentsTab() {
+    var list = $('agList'), lim = $('agLimits');
+    list.innerHTML = ''; lim.innerHTML = '';
+    if (!agentsData.length) { list.innerHTML = '<div class="aempty">No AI agents found on this Mac.</div>'; return; }
+    agentsData.forEach(function (a) {
+      var h = document.createElement('div');
+      h.className = 'ahead';
+      h.innerHTML = '<span></span><small></small>';
+      h.firstChild.textContent = a.name;
+      h.lastChild.textContent = a.running ? 'running' : 'not running';
+      list.appendChild(h);
+      if (!a.sessions.length) {
+        var e = document.createElement('div');
+        e.className = 'aempty';
+        e.textContent = a.running ? 'Nothing active right now.' : 'Open it on the Mac to see activity here.';
+        list.appendChild(e);
+      }
+      a.sessions.forEach(function (s) {
+        var r = document.createElement('div');
+        r.className = 'arow';
+        r.innerHTML = '<span class="sdot ' + s.state + '"></span><div class="at"></div><div class="ad"></div>' +
+          '<div class="as ' + s.state + '"></div><div class="aa"></div>';
+        r.children[1].textContent = s.title;
+        r.children[2].textContent = s.detail;
+        r.children[3].textContent = STATE_LABEL[s.state] || s.state;
+        r.children[4].textContent = agoShort(s.at);
+        list.appendChild(r);
+      });
+      // Plan limits card for this agent
+      var card = document.createElement('div');
+      card.className = 'lcard';
+      card.innerHTML = '<h4></h4>';
+      card.firstChild.textContent = a.name;
+      a.limits.forEach(function (l) {
+        var p = Math.round(l.percent), row = document.createElement('div');
+        row.className = 'lrow';
+        row.innerHTML = '<div class="lt"><b></b><span></span></div><i><u></u></i><div class="lr"></div>';
+        row.firstChild.firstChild.textContent = p + '%';
+        row.firstChild.lastChild.textContent = l.label + (l.plan ? ' · ' + l.plan : '');
+        row.children[1].firstChild.style.width = Math.min(100, p) + '%';
+        row.children[1].firstChild.className = limitClass(p);
+        var stale = l.asOf && macNow() - l.asOf > 30 * 60000 ? ' · as of ' + agoShort(l.asOf) : '';
+        row.lastChild.textContent = (l.resetsAt ? resetLabel(l.resetsAt) : '') + stale;
+        card.appendChild(row);
+      });
+      if (!a.limits.length) {
+        var n = document.createElement('div');
+        n.className = 'lnote';
+        n.textContent = a.note || 'No plan limits available.';
+        card.appendChild(n);
+      }
+      lim.appendChild(card);
+    });
+  }
+  // Agents tab: sessions on the left, plan limits on the right (stacked in portrait).
+  function layoutAgents() {
+    if (portrait) {
+      px($('agLimits'), { left: 16, top: 84, width: W - 32, height: 190 });
+      px($('agList'), { left: 16, top: 284, width: W - 32, height: H - 294 });
+    } else {
+      var cw = W >= 640 ? 190 : 156;
+      px($('agList'), { left: 16, top: 44, width: W - 32 - cw - 12, height: H - 52 });
+      px($('agLimits'), { left: W - 16 - cw, top: 48, width: cw, height: H - 56 });
+    }
+  }
+  tap($('agStrip'), function () { show('agents'); });
 
   // ---------- Phone tab: camera + mic to the Mac over a secure WebSocket ----------
   // Messages: 1 type byte + payload. 'H' token, 'V' JPEG frame, 'A' 16 kHz mono s16le PCM.
@@ -1393,7 +1602,8 @@
       if (s !== 200) { $('link').className = ''; setTimeout(connect, 2000); return; }
       sheet('login', false);
       loadKeys();
-      show(phoneTabOn() && store('view') === 'phone' ? 'phone' : 'deck');
+      var sv = /agents/.test(location.search) ? 'agents' : store('view');
+      show(sv === 'agents' ? 'agents' : phoneTabOn() && sv === 'phone' ? 'phone' : 'deck');
       if (/edit/.test(location.search)) setTimeout(openEditor, 300);
       // Link options for Home Screen bookmarks: ?clock opens the clock, ?settings its settings, ?theme=amber picks a theme.
       var th = /theme=(\w+)/.exec(location.search);

@@ -41,6 +41,10 @@ final class StatusMenu: NSObject, NSMenuDelegate {
         menu.addItem(action("Copy Phone Link", #selector(copyDeck)))
         menu.addItem(action("Copy OBS Camera URL", #selector(copyCamera)))
         menu.addItem(.separator())
+        let limits = action("Show Claude Code Limits on Phone", #selector(toggleClaudeLimits))
+        limits.state = ClaudeLimits.isOn ? .on : .off
+        limits.toolTip = "Adds a small status-line script to Claude Code (~/.claude/settings.json) that saves your plan limits for the phone. Turning it off restores your previous setting."
+        menu.addItem(limits)
         if StatusMenu.isApp {
             let login = action("Open at Login", #selector(toggleLogin))
             login.state = SMAppService.mainApp.status == .enabled ? .on : .off
@@ -62,6 +66,11 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     private func copy(_ s: String) {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(s, forType: .string)
+    }
+
+    @objc private func toggleClaudeLimits() {
+        do { if ClaudeLimits.isOn { try ClaudeLimits.disable() } else { try ClaudeLimits.enable() } }
+        catch { alert("Couldn't change Claude Code's status line", error.localizedDescription) }
     }
 
     @objc private func showSettings() {

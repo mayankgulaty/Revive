@@ -13,6 +13,7 @@ No jailbreak, no App Store, nothing to install on the phone: it runs in Safari, 
 - **Flip clock when idle:** after a few minutes without a touch, the deck turns into a full-screen split-flap clock with animated digits, the date and up to **3 world clocks**. It has **6 themes** (Graphite, Paper, Amber, Terminal, Ocean, Sunset) and a **12- or 24-hour** setting. Tap to go back; hold for settings. You can also tap the time in the top-left corner.
 - **Take note → new Claude chat:** dictate a note, and it opens and sends a fresh conversation in the [Claude](https://claude.ai/download) desktop app.
 - **Now playing:** artwork, track, progress and previous / play-pause / next for **Spotify** or **Apple Music**. The card only appears while music is playing (and for a minute after you pause), and the keys move into its space otherwise.
+- **AI agents:** an **Agents** tab shows what **Claude Code**, **Cursor** and **Grok Bot** are doing right now: each session, its project, and whether it's working, needs you, done or idle. It also shows **plan limits** with reset times: Grok Bot's weekly usage, and Claude Code's 5-hour and weekly limits (optional, see below). When no music plays, a strip on the deck shows the same at a glance, and the Agents tab gets an orange dot when an agent needs you.
 - **Internet widget:** download, upload and ping (macOS's built-in `networkQuality`), plus a live traffic graph. Tap it to re-test.
 - **Batteries widget:** MacBook, Magic Keyboard / Mouse / Trackpad and AirPods (with case), each as an icon + percentage.
 - **Menu-bar app:** runs in the background, opens at login, and shows **QR codes** to pair a phone.
@@ -122,6 +123,7 @@ iPhone (Safari)                     Mac: Revive (Swift, no dependencies, menu-ba
 | Internet | `/usr/bin/networkQuality -c` + `en*` interface byte counters |
 | Batteries | IOKit power sources, `ioreg -r -k BatteryPercent`, `system_profiler SPBluetoothDataType` |
 | HTTPS | Local CA and a server certificate for `your-mac.local` and the current IP, generated with the built-in `openssl` and served as an iOS profile |
+| AI agents | Read-only, every 3 s. Claude Code: `~/.claude/sessions/<pid>.json` (status per running session). Cursor: its chat database, opened read-only. Grok Bot: its saved app state (agents, cloud agents, weekly usage). Cursor's plan usage is only on cursor.com, so it isn't shown |
 | Menu bar | `NSStatusItem`, QR codes from Core Image, Open at Login via `SMAppService` |
 
 The whole phone UI is one file, [`Sources/revive/web/index.html`](Sources/revive/web/index.html). It's deliberately written in ES5 (no arrow functions, `let`, `fetch`…) so iOS 8/9 Safari can run it. CI checks this on every push.
@@ -141,12 +143,18 @@ Settings live in `~/.revive/` (menu bar → **Show Settings Folder**):
 | `launcher.json` | Your keys |
 | `clocks.json` | Your world clocks |
 | `icons/` | Cached website icons. Delete one to fetch it again |
+| `claude-limits.json`, `claude-statusline.sh` | Claude Code plan limits, only if you turn them on (below) |
 | `tls/` | Certificates for HTTPS |
+
+### Claude Code plan limits (optional)
+
+Claude Code doesn't save its usage limits to disk, but it passes them to its status-line command. Menu bar → **Show Claude Code Limits on Phone** sets that command to a small script in `~/.revive` that saves them for the phone. It edits `statusLine` in `~/.claude/settings.json`, keeping a one-time backup as `settings.json.revive-backup`. A status line you already had keeps running and showing. Turn the menu item off to restore your previous setting. The limits update whenever Claude Code refreshes its status line, after each reply.
 
 ## Security
 
 - It listens on your **local network only**, and every request needs the random token from `~/.revive/token`.
 - Anyone with the link on your Wi-Fi can open apps, websites and folders on your Mac, so **treat the URL like a password** and **never port-forward it to the internet**.
+- Agent activity is read from local files only; nothing is sent anywhere except to your phone, over your Wi-Fi.
 - Website keys only accept `http`/`https` links, and folder keys only open real folders, never apps.
 - Delete `~/.revive/token` and restart Revive to issue a new one.
 
