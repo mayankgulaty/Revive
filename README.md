@@ -5,7 +5,7 @@ No jailbreak, no App Store, nothing to install on the phone: it runs in Safari, 
 
 | The deck | The idle flip clock (Terminal theme) |
 |---|---|
-| ![Revive's deck on an iPhone below a Mac display: app, website and Take note keys, internet speed and batteries](docs/deck.jpg) | ![Revive's flip clock in the green Terminal theme, with New York and Delhi world clocks](docs/clock.jpg) |
+| ![Revive's deck on an iPhone below a Mac display: app, website and Take note keys, internet speed and batteries](docs/revive-deck.jpg) | ![Revive's flip clock in the green Terminal theme, with New York and Delhi world clocks](docs/revive-flip-clock.jpg) |
 
 ## Features
 

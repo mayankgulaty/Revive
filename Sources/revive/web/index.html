@@ -345,8 +345,8 @@
     </div>
     <div id="net" class="card">
       <h3 id="netTitle">Internet</h3>
-      <div class="big"><span class="arrow">↓</span> <span id="down">–</span><small>Mbps</small></div>
-      <div class="sub"><span class="arrow up">↑</span> <span id="up">–</span> Mbps · <span id="ping">–</span> ms</div>
+      <div class="big"><span class="arrow">↓</span> <span id="down">–</span><small id="downUnit">Mbps</small></div>
+      <div class="sub"><span class="arrow up">↑</span> <span id="up">–</span> <span id="upUnit">Mbps</span> · <span id="ping">–</span> ms</div>
       <canvas id="spark" width="208" height="36"></canvas>
     </div>
     <div id="bat" class="card"><h3>Batteries</h3><div id="batList"></div></div>
@@ -1123,6 +1123,12 @@
 
   // ---------- widgets ----------
   function fmt(n) { return n >= 100 ? Math.round(n) : n >= 10 ? n.toFixed(0) : n.toFixed(1); }
+  // Speeds arrive in Mbps; from 1000 up show Gbps ("1.2 Gbps") so the number stays short.
+  function speed(id, mbps) {
+    var g = mbps !== undefined && mbps >= 1000;
+    $(id).textContent = mbps === undefined ? '–' : g ? (mbps / 1000).toFixed(mbps >= 10000 ? 0 : 1) : fmt(mbps);
+    $(id + 'Unit').textContent = g ? 'Gbps' : 'Mbps';
+  }
   function ago(ms) {
     var s = Math.round((Date.now() - ms) / 1000);
     return s < 60 ? 'just now' : s < 3600 ? Math.round(s / 60) + ' min ago' : Math.round(s / 3600) + ' h ago';
@@ -1209,8 +1215,8 @@
       syncTime(d.time); tick();
       $('macName').textContent = d.mac.replace(/^\S+['’]s?\s+/, '');
       var sp = d.speed || {};
-      $('down').textContent = sp.down !== undefined ? fmt(sp.down) : '–';
-      $('up').textContent = sp.up !== undefined ? fmt(sp.up) : '–';
+      speed('down', sp.down);
+      speed('up', sp.up);
       $('ping').textContent = sp.ping !== undefined ? Math.round(sp.ping) : '–';
       $('net').title = sp.at ? 'Tested ' + ago(sp.at) : '';
       $('netTitle').textContent = sp.running ? 'Testing…' : 'Internet';
