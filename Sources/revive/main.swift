@@ -170,6 +170,13 @@ let routes: (HTTPRequest, HTTPConnection) -> Void = { req, conn in
         let ids = (p["ids"] ?? "").split(separator: "\n").map(String.init)
         do { conn.respondJSON(["saved": try WorldClocks.save(ids).count]) }
         catch { conn.respond(500, text: error.localizedDescription) }
+    case ("GET", "/agents"):
+        conn.respondJSON(["agents": agents.choices()])
+    case ("POST", "/agents"):
+        // Body: hidden=<id>,<id>… (agents not to show)
+        let ids = (p["hidden"] ?? "").split(separator: ",").map(String.init)
+        do { try agents.setHidden(ids); conn.respond(text: "ok") }
+        catch { conn.respond(500, text: error.localizedDescription) }
     case ("POST", "/claude"):
         let text = (p["text"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         DispatchQueue.main.async {

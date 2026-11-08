@@ -25,7 +25,47 @@ final class Agents {
     func snapshot() -> [[String: Any]] { queue.sync { latest } }
 
     private func refresh() {
-        latest = [claudeCode(), cursor(), grokBot()].compactMap { $0 }
+        let hidden = hiddenIDs
+        latest = Agents.catalog.compactMap { id, _ -> [String: Any]? in
+            guard !hidden.contains(id) else { return nil }   // hidden agents aren't even read
+            switch id {
+            case "claude": return claudeCode()
+            case "cursor": return cursor()
+            default: return grokBot()
+            }
+        }
+    }
+
+    // MARK: Choosing which agents to show (saved on the Mac, so every phone and browser agrees)
+
+    static let catalog = [("claude", "Claude Code"), ("cursor", "Cursor"), ("grok", "Grok Bot")]
+    private let choiceFile = Config.file("agents.json")
+    private var hiddenIDs: Set<String> {
+        let d = Agents.json(choiceFile) as? [String: Any]
+        return Set((d?["hidden"] as? [String]) ?? [])
+    }
+
+    /// Every agent Revive knows, whether it's on this Mac, and whether it's shown.
+    func choices() -> [[String: Any]] {
+        let hidden = hiddenIDs
+        return Agents.catalog.map { id, name in
+            ["id": id, "name": name, "installed": installed(id), "shown": !hidden.contains(id)]
+        }
+    }
+
+    func setHidden(_ ids: [String]) throws {
+        let known = Set(Agents.catalog.map { $0.0 })
+        try FileManager.default.createDirectory(at: Config.dir, withIntermediateDirectories: true)
+        try JSONSerialization.data(withJSONObject: ["hidden": ids.filter { known.contains($0) }]).write(to: choiceFile)
+        queue.async { self.refresh() }
+    }
+
+    private func installed(_ id: String) -> Bool {
+        switch id {
+        case "claude": return FileManager.default.fileExists(atPath: home.appendingPathComponent(".claude").path)
+        case "cursor": return NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.todesktop.230313mzl4w4u92") != nil
+        default: return NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.anysphere.sand") != nil
+        }
     }
 
     private static func nowMs() -> Double { Date().timeIntervalSince1970 * 1000 }
