@@ -3,11 +3,9 @@
 **Give your old iPhone a second life. Turn it into a Stream Deck–style control panel and desk clock for your Mac.**
 No jailbreak, no App Store, nothing to install on the phone: it runs in Safari, even on an iPhone 4S stuck on iOS 9.
 
-![An iPhone 4S on a desk stand running Revive](docs/desk.jpg)
-
-| The deck | Idle clock | Take note | Pick your keys |
-|---|---|---|---|
-| ![Deck](docs/deck.jpg) | ![Flip clock](docs/clock.jpg) | ![Take note](docs/take-note.jpg) | ![Pick keys](docs/pick-apps.jpg) |
+| The deck | The idle flip clock (Terminal theme) |
+|---|---|
+| ![Revive's deck on an iPhone below a Mac display: app, website and Take note keys, internet speed and batteries](docs/deck.jpg) | ![Revive's flip clock in the green Terminal theme, with New York and Delhi world clocks](docs/clock.jpg) |
 
 ## Features
 
