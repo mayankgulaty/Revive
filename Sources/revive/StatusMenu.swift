@@ -42,8 +42,8 @@ final class StatusMenu: NSObject, NSMenuDelegate {
         menu.addItem(action("Copy OBS Camera URL", #selector(copyCamera)))
         menu.addItem(.separator())
         let limits = action("Show Claude Code Limits on Phone", #selector(toggleClaudeLimits))
-        limits.state = ClaudeLimits.isOn ? .on : .off
-        limits.toolTip = "Adds a small status-line script to Claude Code (~/.claude/settings.json) that saves your plan limits for the phone. Turning it off restores your previous setting."
+        limits.state = ClaudeUsage.shared.isOn ? .on : .off
+        limits.toolTip = "Reads your 5-hour and weekly limits from Anthropic every 5 minutes, using the Claude Code login in your Keychain (macOS asks first). The login stays on this Mac."
         menu.addItem(limits)
         if StatusMenu.isApp {
             let login = action("Open at Login", #selector(toggleLogin))
@@ -69,8 +69,11 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     }
 
     @objc private func toggleClaudeLimits() {
-        do { if ClaudeLimits.isOn { try ClaudeLimits.disable() } else { try ClaudeLimits.enable() } }
-        catch { alert("Couldn't change Claude Code's status line", error.localizedDescription) }
+        let on = !ClaudeUsage.shared.isOn
+        ClaudeUsage.shared.setOn(on)
+        // The earlier status-line approach is no longer needed: put back the status line you had before.
+        do { try ClaudeLimits.removeStatusLine() }
+        catch { alert("Couldn't restore Claude Code's status line", error.localizedDescription) }
     }
 
     @objc private func showSettings() {

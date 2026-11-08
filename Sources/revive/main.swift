@@ -69,6 +69,7 @@ let music = Music()
 music.start()
 let agents = Agents()
 agents.start()
+ClaudeUsage.shared.start()
 let activity = PhoneActivity()
 
 // MARK: Routes

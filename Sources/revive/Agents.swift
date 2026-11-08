@@ -40,7 +40,7 @@ final class Agents {
     // MARK: Claude Code
 
     /// Each running session writes ~/.claude/sessions/<pid>.json with status busy/idle, its folder and name.
-    /// Plan limits come from ~/.revive/claude-limits.json, saved by the optional status-line script.
+    /// Plan limits come from ClaudeUsage (optional, off until turned on in the menu bar).
     private func claudeCode() -> [String: Any]? {
         let root = home.appendingPathComponent(".claude")
         guard FileManager.default.fileExists(atPath: root.path) else { return nil }
@@ -62,24 +62,11 @@ final class Agents {
             sessions.append(["title": (d["name"] as? String) ?? project, "detail": project.isEmpty ? surface : "\(project) · \(surface)",
                              "state": state, "at": at])
         }
+        let usage = ClaudeUsage.shared.current()
         var agent: [String: Any] = ["id": "claude", "name": "Claude Code", "running": !sessions.isEmpty,
-                                    "sessions": Agents.sorted(sessions), "limits": claudeLimits()]
-        if (agent["limits"] as? [Any])?.isEmpty ?? true { agent["note"] = "Plan limits: turn on in the Revive menu bar" }
+                                    "sessions": Agents.sorted(sessions), "limits": usage.limits]
+        if let note = usage.note { agent["note"] = note }
         return agent
-    }
-
-    /// The status-line script saves Claude Code's own `rate_limits` here whenever its status line refreshes.
-    private func claudeLimits() -> [[String: Any]] {
-        let file = Config.file("claude-limits.json")
-        guard let d = Agents.json(file) as? [String: Any], let limits = d["rate_limits"] as? [String: Any] else { return [] }
-        let asOf = ((try? file.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? Date()).timeIntervalSince1970 * 1000
-        let names = [("five_hour", "5-hour"), ("seven_day", "Weekly"), ("seven_day_opus", "Weekly Opus"), ("spend_limit", "Spend")]
-        return names.compactMap { key, label in
-            guard let l = limits[key] as? [String: Any], let pct = Agents.number(l["used_percentage"]) else { return nil }
-            var out: [String: Any] = ["label": label, "percent": pct, "asOf": asOf]
-            if let r = Agents.time(l["resets_at"]) { out["resetsAt"] = r }
-            return out
-        }
     }
 
     // MARK: Cursor

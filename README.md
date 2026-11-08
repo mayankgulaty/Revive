@@ -123,7 +123,7 @@ iPhone (Safari)                     Mac: Revive (Swift, no dependencies, menu-ba
 | Internet | `/usr/bin/networkQuality -c` + `en*` interface byte counters |
 | Batteries | IOKit power sources, `ioreg -r -k BatteryPercent`, `system_profiler SPBluetoothDataType` |
 | HTTPS | Local CA and a server certificate for `your-mac.local` and the current IP, generated with the built-in `openssl` and served as an iOS profile |
-| AI agents | Read-only, every 3 s. Claude Code: `~/.claude/sessions/<pid>.json` (status per running session). Cursor: its chat database, opened read-only. Grok Bot: its saved app state (agents, cloud agents, weekly usage). Cursor's plan usage is only on cursor.com, so it isn't shown |
+| AI agents | Read-only, every 3 s. Claude Code: `~/.claude/sessions/<pid>.json` (status per running session). Cursor: its chat database, opened read-only. Grok Bot: its saved app state (agents, cloud agents, weekly usage). Claude Code's plan limits (optional): Anthropic's usage endpoint with your Keychain login. Cursor's plan usage is only on cursor.com, so it isn't shown |
 | Menu bar | `NSStatusItem`, QR codes from Core Image, Open at Login via `SMAppService` |
 
 The whole phone UI is one file, [`Sources/revive/web/index.html`](Sources/revive/web/index.html). It's deliberately written in ES5 (no arrow functions, `let`, `fetch`…) so iOS 8/9 Safari can run it. CI checks this on every push.
@@ -143,18 +143,23 @@ Settings live in `~/.revive/` (menu bar → **Show Settings Folder**):
 | `launcher.json` | Your keys |
 | `clocks.json` | Your world clocks |
 | `icons/` | Cached website icons. Delete one to fetch it again |
-| `claude-limits.json`, `claude-statusline.sh` | Claude Code plan limits, only if you turn them on (below) |
+| `claude-usage-on` | Present while Claude Code plan limits are turned on (no login is stored) |
 | `tls/` | Certificates for HTTPS |
 
 ### Claude Code plan limits (optional)
 
-Claude Code doesn't save its usage limits to disk, but it passes them to its status-line command. Menu bar → **Show Claude Code Limits on Phone** sets that command to a small script in `~/.revive` that saves them for the phone. It edits `statusLine` in `~/.claude/settings.json`, keeping a one-time backup as `settings.json.revive-backup`. A status line you already had keeps running and showing. Turn the menu item off to restore your previous setting. The limits update whenever Claude Code refreshes its status line, after each reply.
+Claude Code doesn't save its 5-hour and weekly limits on disk. Its own `/usage` screen asks Anthropic for them, signed in with your Claude login. Menu bar → **Show Claude Code Limits on Phone** makes Revive do the same every 5 minutes:
+
+- The login is read from **your own Mac's Keychain** while Revive runs. The first time, macOS asks whether Revive may use "Claude Code-credentials"; choose **Always Allow**.
+- It's kept in memory only and sent only to `api.anthropic.com`, never to your phone, to disk or to this repository. Everyone who installs Revive sees their own usage.
+- It works however you run Claude Code (terminal or IDE extension).
+- The usage endpoint isn't a published API: if Anthropic changes it, the Claude card shows a note instead of the bars.
 
 ## Security
 
 - It listens on your **local network only**, and every request needs the random token from `~/.revive/token`.
 - Anyone with the link on your Wi-Fi can open apps, websites and folders on your Mac, so **treat the URL like a password** and **never port-forward it to the internet**.
-- Agent activity is read from local files only; nothing is sent anywhere except to your phone, over your Wi-Fi.
+- Agent activity is read from local files only and sent nowhere except your phone, over your Wi-Fi. The optional Claude Code limits use your Keychain login with `api.anthropic.com` only; the phone never gets the login.
 - Website keys only accept `http`/`https` links, and folder keys only open real folders, never apps.
 - Delete `~/.revive/token` and restart Revive to issue a new one.
 
