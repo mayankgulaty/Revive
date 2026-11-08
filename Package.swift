@@ -2,12 +2,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "OldPhoneDeck",
+    name: "Revive",
     platforms: [.macOS(.v14)],
     targets: [
         .executableTarget(
-            name: "oldphonedeck",
-            path: "Sources/oldphonedeck",
+            name: "revive",
+            path: "Sources/revive",
             resources: [.copy("web")],
             linkerSettings: [.linkedFramework("AppKit")]
         ),

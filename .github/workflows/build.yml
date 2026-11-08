@@ -13,5 +13,5 @@ jobs:
         run: swift build -c release
       - name: Phone page is ES5 (old iPhones can't run newer JavaScript)
         run: |
-          python3 -c "import re; s=open('Sources/oldphonedeck/web/index.html').read(); open('page.js','w').write(re.search(r'<script>(.*)</script>', s, re.S).group(1))"
+          python3 -c "import re; s=open('Sources/revive/web/index.html').read(); open('page.js','w').write(re.search(r'<script>(.*)</script>', s, re.S).group(1))"
           npx --yes acorn@8.11.3 --ecma5 --silent page.js

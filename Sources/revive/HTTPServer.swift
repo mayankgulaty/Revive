@@ -133,7 +133,7 @@ final class HTTPServer {
         listener.newConnectionHandler = { [queue] nw in HTTPConnection(nw).start(queue: queue, handler: handler) }
         listener.stateUpdateHandler = { [port] state in
             if case .failed(let e) = state {
-                fatal("Can't listen on port \(port): \(e). Is OldPhoneDeck already running (in the menu bar or a terminal)?")
+                fatal("Can't listen on port \(port): \(e). Is Revive already running (in the menu bar or a terminal)?")
             }
         }
         listener.start(queue: queue)

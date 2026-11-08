@@ -6,7 +6,7 @@ enum WorldClocks {
     struct Clock: Equatable { let zone: String; let city: String }
 
     static let maxCount = 3
-    private static let file = URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".oldphonedeck/clocks.json")
+    private static let file = Config.file("clocks.json")
     private static let lock = NSLock()
     private static var cached: [Clock]?
 

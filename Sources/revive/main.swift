@@ -15,7 +15,7 @@ struct Options {
             case "--mic-device": micDevice = it.next() ?? micDevice
             case "-h", "--help":
                 print("""
-                oldphonedeck: turn an old iPhone into a Stream Deck-style control panel for your Mac
+                revive: turn an old iPhone into a Stream Deck-style control panel and desk clock for your Mac
                   --port N          HTTP port (default 8045; HTTPS uses N+2, WebSocket N+3)
                   --mic-device NAME audio device that receives the phone's mic (default BlackHole)
                 """)
@@ -30,7 +30,8 @@ struct Options {
 
 setvbuf(stdout, nil, _IOLBF, 0)
 let opts = Options(CommandLine.arguments)
-let configDir = URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".oldphonedeck")
+Config.migrate()   // before anything reads settings
+let configDir = Config.dir
 
 // MARK: Access token (anyone on the Wi-Fi could otherwise open apps on your Mac)
 
@@ -70,7 +71,7 @@ let activity = PhoneActivity()
 
 // MARK: Routes
 
-/// The phone page: inside OldPhoneDeck.app it's in Contents/Resources/web; from `swift build`, in SwiftPM's resource bundle.
+/// The phone page: inside Revive.app it's in Contents/Resources/web; from `swift build`, in SwiftPM's resource bundle.
 let webRoot: URL = {
     if let r = Bundle.main.resourceURL?.appendingPathComponent("web"),
        FileManager.default.fileExists(atPath: r.appendingPathComponent("index.html").path) { return r }
@@ -86,18 +87,19 @@ func keyParams(_ p: [String: String]) -> [String: String] {
 
 let routes: (HTTPRequest, HTTPConnection) -> Void = { req, conn in
     // Public: the page shell (so a home-screen bookmark loads) and the local CA as an iOS profile.
-    if req.path == "/oldphonedeck.mobileconfig" {
+    // (/oldphonedeck.mobileconfig is the address from before the rename; links to it still work.)
+    if req.path == "/revive.mobileconfig" || req.path == "/oldphonedeck.mobileconfig" {
         guard let der = try? Data(contentsOf: LocalTLS.caDER) else { return conn.respond(404, text: "no certificate yet") }
         let cert: [String: Any] = [
             "PayloadType": "com.apple.security.root", "PayloadVersion": 1,
-            "PayloadIdentifier": "com.oldphonedeck.ca.cert", "PayloadUUID": "6F1C2A4E-2B7D-4C5A-9E1F-50A1C0DEC0A1",
-            "PayloadDisplayName": "OldPhoneDeck CA", "PayloadCertificateFileName": "oldphonedeck-ca.cer", "PayloadContent": der,
+            "PayloadIdentifier": "com.mayankgulaty.revive.ca.cert", "PayloadUUID": "8D2B5C61-4E3A-4F7B-9C1D-2E6F7A8B9C01",
+            "PayloadDisplayName": "Revive CA", "PayloadCertificateFileName": "revive-ca.cer", "PayloadContent": der,
         ]
         let profile: [String: Any] = [
             "PayloadType": "Configuration", "PayloadVersion": 1,
-            "PayloadIdentifier": "com.oldphonedeck.ca", "PayloadUUID": "3B8E9D10-7C2F-4E61-A5B3-50A1C0DEC0A2",
-            "PayloadDisplayName": "OldPhoneDeck", "PayloadOrganization": "OldPhoneDeck",
-            "PayloadDescription": "Lets this iPhone open OldPhoneDeck on your Mac over HTTPS (needed for camera, mic and voice).",
+            "PayloadIdentifier": "com.mayankgulaty.revive.ca", "PayloadUUID": "1A4C7E92-5B6D-4E8F-A0B1-C2D3E4F50612",
+            "PayloadDisplayName": "Revive", "PayloadOrganization": "Revive",
+            "PayloadDescription": "Lets this iPhone open Revive on your Mac over HTTPS (needed for camera, mic and voice).",
             "PayloadContent": [cert],
         ]
         let data = (try? PropertyListSerialization.data(fromPropertyList: profile, format: .xml, options: 0)) ?? Data()
@@ -208,7 +210,7 @@ if !AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedVal
 if isatty(STDOUT_FILENO) != 0, let qr = QR.terminal(links.deck) { print("\n" + qr, terminator: "") }
 print("""
 
-OldPhoneDeck is running (look for its icon in the menu bar). On the phone (same Wi-Fi), open Safari and go to:
+Revive is running (look for its icon in the menu bar). On the phone (same Wi-Fi), open Safari and go to:
 
     \(links.deck)
 \(links.host != nil ? "    or, if that name doesn't load: \(links.deckByIP)\n" : "")

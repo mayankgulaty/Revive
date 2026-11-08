@@ -1,9 +1,9 @@
 import AppKit
 
 /// Website keys: URL checks and icons. The icon is the site's own Home Screen icon
-/// (apple-touch-icon) or favicon, fetched once by the Mac and cached in ~/.oldphonedeck/icons.
+/// (apple-touch-icon) or favicon, fetched once by the Mac and cached in ~/.revive/icons.
 enum Links {
-    private static let cacheDir = URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".oldphonedeck/icons")
+    private static let cacheDir = Config.file("icons")
     private static let lock = NSLock()
     private static var memory: [String: Data] = [:]
     private static let session: URLSession = {

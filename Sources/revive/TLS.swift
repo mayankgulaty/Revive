@@ -2,14 +2,15 @@ import Foundation
 import Network
 import Security
 
-/// A private certificate authority + server certificate so modern iPhones can open phonedeck
+/// A private certificate authority + server certificate so modern iPhones can open Revive
 /// over HTTPS (Safari only allows camera/mic/speech on secure pages).
 /// The CA is created once; trust it on the iPhone and every later server cert is accepted.
 /// The server cert covers the Mac's Bonjour name (name.local) and its current IP, and is
 /// re-issued automatically when either changes.
 enum LocalTLS {
-    static let dir = URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".oldphonedeck/tls")
-    static var caDER: URL { dir.appendingPathComponent("oldphonedeck-ca.cer") }
+    static let dir = Config.file("tls")
+    static var caDER: URL { dir.appendingPathComponent("ca.cer") }
+    /// Protects server.p12 on disk only. Kept from the OldPhoneDeck days so existing certificates still load.
     private static let p12Password = "oldphonedeck"
 
     /// Returns a TLS identity for `ip` (and `host`, e.g. "alexs-mac.local"), creating the CA and/or server cert as needed.
@@ -17,6 +18,8 @@ enum LocalTLS {
         do {
             try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
             if !exists("ca.key") || !exists("ca.pem") { try makeCA() }
+            // Settings moved from OldPhoneDeck have the CA under another file name: re-export it, same CA.
+            if !exists("ca.cer") { try openssl(["x509", "-in", "ca.pem", "-outform", "der", "-out", "ca.cer"]) }
             let want = [ip, host ?? ""].joined(separator: " ")
             let stamp = (try? String(contentsOf: dir.appendingPathComponent("server.ip"), encoding: .utf8)) ?? ""
             if !exists("server.p12") || stamp != want { try makeServerCert(ip: ip, host: host) }
@@ -43,7 +46,7 @@ enum LocalTLS {
         p.waitUntilExit()
         guard p.terminationStatus == 0 else {
             let msg = String(data: err.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
-            throw NSError(domain: "oldphonedeck.tls", code: Int(p.terminationStatus),
+            throw NSError(domain: "revive.tls", code: Int(p.terminationStatus),
                           userInfo: [NSLocalizedDescriptionKey: "openssl \(args.first ?? ""): \(msg)"])
         }
     }
@@ -53,10 +56,10 @@ enum LocalTLS {
         try "basicConstraints=critical,CA:TRUE\nkeyUsage=critical,keyCertSign,cRLSign\nsubjectKeyIdentifier=hash\n"
             .write(to: dir.appendingPathComponent("ca.ext"), atomically: true, encoding: .utf8)
         try openssl(["req", "-new", "-newkey", "rsa:2048", "-nodes", "-keyout", "ca.key", "-out", "ca.csr",
-                     "-subj", "/CN=OldPhoneDeck CA"])
+                     "-subj", "/CN=Revive CA"])
         try openssl(["x509", "-req", "-in", "ca.csr", "-signkey", "ca.key", "-sha256", "-days", "3650",
                      "-extfile", "ca.ext", "-out", "ca.pem"])
-        try openssl(["x509", "-in", "ca.pem", "-outform", "der", "-out", "oldphonedeck-ca.cer"])
+        try openssl(["x509", "-in", "ca.pem", "-outform", "der", "-out", "ca.cer"])
         try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: dir.appendingPathComponent("ca.key").path)
     }
 
@@ -87,12 +90,12 @@ enum LocalTLS {
         let status = SecPKCS12Import(data as CFData, opts as CFDictionary, &items)
         guard status == errSecSuccess, let first = (items as? [[String: Any]])?.first,
               let ref = first[kSecImportItemIdentity as String] else {
-            throw NSError(domain: "oldphonedeck.tls", code: Int(status),
+            throw NSError(domain: "revive.tls", code: Int(status),
                           userInfo: [NSLocalizedDescriptionKey: "Could not load server identity (\(status))"])
         }
         let identity = ref as! SecIdentity
         guard let sec = sec_identity_create(identity) else {
-            throw NSError(domain: "oldphonedeck.tls", code: -1, userInfo: [NSLocalizedDescriptionKey: "sec_identity_create failed"])
+            throw NSError(domain: "revive.tls", code: -1, userInfo: [NSLocalizedDescriptionKey: "sec_identity_create failed"])
         }
         return sec
     }

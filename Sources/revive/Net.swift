@@ -51,6 +51,6 @@ struct PairingLinks {
     var deck: String { "http://\(name):\(port)/#k=\(token)" }
     var deckByIP: String { "http://\(ip):\(port)/#k=\(token)" }
     var secureDeck: String { "https://\(name):\(port + 2)/#k=\(token)" }
-    var profile: String { "http://\(name):\(port)/oldphonedeck.mobileconfig" }
+    var profile: String { "http://\(name):\(port)/revive.mobileconfig" }
     var obsCamera: String { "http://localhost:\(port)/camera.mjpg?k=\(token)" }
 }

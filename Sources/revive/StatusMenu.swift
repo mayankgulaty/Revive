@@ -16,14 +16,14 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     private let activity: PhoneActivity
     private var pairingWindow: NSWindow?
 
-    /// Running as OldPhoneDeck.app (installed) rather than from the terminal.
+    /// Running as Revive.app (installed) rather than from the terminal.
     static var isApp: Bool { Bundle.main.bundleURL.pathExtension == "app" }
 
     init(links: @escaping () -> PairingLinks, activity: PhoneActivity) {
         self.links = links
         self.activity = activity
         super.init()
-        let image = NSImage(systemSymbolName: "square.grid.2x2", accessibilityDescription: "OldPhoneDeck")
+        let image = NSImage(systemSymbolName: "square.grid.2x2", accessibilityDescription: "Revive")
         image?.isTemplate = true
         item.button?.image = image
         let menu = NSMenu()
@@ -48,7 +48,7 @@ final class StatusMenu: NSObject, NSMenuDelegate {
         }
         menu.addItem(action("Show Settings Folder", #selector(showSettings)))
         menu.addItem(.separator())
-        menu.addItem(action("Quit OldPhoneDeck", #selector(quit), key: "q"))
+        menu.addItem(action("Quit Revive", #selector(quit), key: "q"))
     }
 
     private func action(_ title: String, _ sel: Selector, key: String = "") -> NSMenuItem {
@@ -65,7 +65,7 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     }
 
     @objc private func showSettings() {
-        NSWorkspace.shared.open(URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".oldphonedeck"))
+        NSWorkspace.shared.open(Config.dir)
     }
 
     @objc private func quit() { NSApp.terminate(nil) }
@@ -117,7 +117,7 @@ final class StatusMenu: NSObject, NSMenuDelegate {
         }
 
         let window = pairingWindow ?? NSWindow(contentRect: .zero, styleMask: [.titled, .closable], backing: .buffered, defer: false)
-        window.title = "Pair a Phone with OldPhoneDeck"
+        window.title = "Pair a Phone with Revive"
         window.isReleasedWhenClosed = false
         window.contentView = content
         window.setContentSize(content.fittingSize)
@@ -158,8 +158,8 @@ final class StatusMenu: NSObject, NSMenuDelegate {
 func fatal(_ message: String) -> Never {
     print(message)
     if StatusMenu.isApp {
-        if Thread.isMainThread { alert("OldPhoneDeck can't start", message) }
-        else { DispatchQueue.main.sync { alert("OldPhoneDeck can't start", message) } }
+        if Thread.isMainThread { alert("Revive can't start", message) }
+        else { DispatchQueue.main.sync { alert("Revive can't start", message) } }
     }
     exit(1)
 }

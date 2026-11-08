@@ -116,7 +116,7 @@ enum Folders {
 /// web app (which have separate storage on iOS) see the same keys.
 enum Launcher {
     static let maxKeys = 7
-    static let file = URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".oldphonedeck/launcher.json")
+    static let file = Config.file("launcher.json")
 
     /// nil = never configured (the phone shows empty keys and suggests editing).
     static func selected() -> [[String: String]]? {
