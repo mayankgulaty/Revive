@@ -30,7 +30,8 @@
   /* ---- status bar ---- */
   #status { position: absolute; left: 0; right: 0; top: 0; height: 46px; z-index: 5; }
   /* Lock-screen style: big rounded time, small caps date underneath. */
-  #clock { position: absolute; left: 16px; top: 5px; line-height: 1; }
+  /* Tapping the time opens the clock: padding gives it a bigger touch area without moving the text. */
+  #clock { position: absolute; left: 4px; top: 0; padding: 5px 16px 9px 12px; line-height: 1; }
   #time { font: 700 24px "SF Pro Rounded", ui-rounded, -apple-system, "Helvetica Neue", sans-serif; letter-spacing: -.6px;
     -webkit-font-feature-settings: "tnum"; font-feature-settings: "tnum"; }
   #ampm { font-size: 10px; font-weight: 700; color: #8e8e93; margin-left: 3px; letter-spacing: .3px; }
@@ -559,13 +560,19 @@
     clearTimeout(toast.t); toast.t = setTimeout(function () { t.style.display = 'none'; }, 1700);
   }
   // Tap handler: instant on touch (no 300 ms delay), works with a mouse too, shows a pressed state.
+  // A finger always wobbles a little while tapping, so only a real drag (over 12 px) cancels the tap.
   function tap(el, fn, hold) {
-    var moved, held, timer;
+    var moved, held, timer, x0, y0;
     el.addEventListener('touchstart', function (e) {
       moved = false; held = false; el.className += ' down';
+      var t = e.touches[0]; x0 = t.clientX; y0 = t.clientY;
       if (hold) timer = setTimeout(function () { held = true; unpress(); hold(e); }, 550);
     });
-    el.addEventListener('touchmove', function () { moved = true; clearTimeout(timer); unpress(); });
+    el.addEventListener('touchmove', function (e) {
+      var t = e.touches[0];
+      if (moved || Math.abs(t.clientX - x0) + Math.abs(t.clientY - y0) < 12) return;
+      moved = true; clearTimeout(timer); unpress();
+    });
     el.addEventListener('touchend', function (e) {
       e.preventDefault(); clearTimeout(timer); unpress();
       if (!moved && !held) fn(e);
@@ -917,8 +924,13 @@
   // Go to the clock after a few idle minutes on the deck. The delay is per phone (Off, 1, 3, 10, 30 min).
   var IDLE_CHOICES = [0, 1, 3, 10, 30], lastTouch = Date.now();
   function idleMinutes() { var v = store('idle'); return v === null || v === '' || isNaN(+v) ? 3 : +v; }
-  function markActive() { lastTouch = Date.now(); }
+  // fingerDown: lists that refresh themselves wait until the finger lifts, so a tap never lands on a replaced row.
+  var fingerDown = false;
+  function markActive() { lastTouch = Date.now(); fingerDown = true; }
+  function fingerUp() { fingerDown = false; }
   document.addEventListener('touchstart', markActive, true);
+  document.addEventListener('touchend', fingerUp, true);
+  document.addEventListener('touchcancel', fingerUp, true);
   document.addEventListener('mousedown', markActive, true);
   function sheetOpen() {
     var s = document.querySelectorAll('.scrim.on');
@@ -1456,7 +1468,7 @@
     var c = countStates(), alert = c.needs > 0;
     if (alert !== agentsAlert || hadAny !== agentsData.length > 0) { agentsAlert = alert; layout(); segClasses(); }
     renderStrip(c);
-    if (view === 'agents') renderAgentsTab();
+    if (view === 'agents' && !fingerDown) renderAgentsTab();
     renderClockUsage();
   }
   // Deck strip: what's happening now on the left, the fullest plan limits on the right.
