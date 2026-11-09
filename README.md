@@ -145,14 +145,14 @@ Settings live in `~/.revive/` (menu bar → **Show Settings Folder**):
 | `clocks.json` | Your world clocks |
 | `icons/` | Cached website icons. Delete one to fetch it again |
 | `agents.json` | Which agents are hidden |
-| `claude-usage-on` | Present while Claude Code plan limits are turned on (no login is stored) |
+| `claude-usage-on`, `claude-usage-last.json` | Claude Code plan limits switch and the last percentages, so a restart isn't blank (no login is stored) |
 | `tls/` | Certificates for HTTPS |
 
 ### Claude Code plan limits (optional)
 
 Claude Code doesn't save its 5-hour and weekly limits on disk. Its own `/usage` screen asks Anthropic for them, signed in with your Claude login. Menu bar → **Show Claude Code Limits on Phone** makes Revive do the same every 5 minutes:
 
-- The login is read from **your own Mac's Keychain** while Revive runs. The first time, macOS asks whether Revive may use "Claude Code-credentials"; choose **Always Allow**.
+- The login is read from **your own Mac's Keychain** while Revive runs, the same way Claude Code reads it (with macOS's `security` tool), so there's no Keychain prompt and it keeps working after Claude Code refreshes its login or the Mac restarts.
 - It's kept in memory only and sent only to `api.anthropic.com`, never to your phone, to disk or to this repository. Everyone who installs Revive sees their own usage.
 - It works however you run Claude Code (terminal or IDE extension).
 - The usage endpoint isn't a published API: if Anthropic changes it, the Claude card shows a note instead of the bars.
